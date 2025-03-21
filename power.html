@@ -57,11 +57,17 @@
     
     <div class="gif-overlay" id="gifOverlay">
         <img src="./images/explosion.gif" alt="Explosion GIF">
+        <audio id="explosionSound" src="./images/explosion.mp3"></audio>
     </div>
     
     <script>
         setTimeout(() => {
             document.getElementById("gifOverlay").style.display = "flex";
+            document.getElementById("explosionSound").play();
+            
+            setTimeout(() => {
+                window.location.href = "why.html";
+            }, 5000);
         }, 5000);
     </script>
 </body>
