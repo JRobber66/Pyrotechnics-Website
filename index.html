@@ -19,25 +19,27 @@
 
         .side-gif {
             position: fixed;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 100px;
+            width: 200px;
             z-index: 999;
         }
 
-        .left-gif {
-            left: 10px;
-        }
-
-        .right-gif {
-            right: 10px;
-        }
+        .left-gif { left: 10px; top: 50%; transform: translateY(-50%); }
+        .right-gif { right: 10px; top: 50%; transform: translateY(-50%); }
+        .left-up-gif { left: 10px; top: 10%; }
+        .left-down-gif { left: 10px; bottom: 10%; }
+        .right-up-gif { right: 10px; top: 10%; }
+        .right-down-gif { right: 10px; bottom: 10%; }
+        .bottom-gif, .bottom-bottom-gif { display: block; margin: 20px auto; width: 300px; }
     </style>
 </head>
 <body>
 
-    <img src="left.gif" class="side-gif left-gif" alt="Left GIF">
-    <img src="right.gif" class="side-gif right-gif" alt="Right GIF">
+    <img src="./left.gif" class="side-gif left-gif" alt="Left GIF">
+    <img src="./right.gif" class="side-gif right-gif" alt="Right GIF">
+    <img src="./left-up.gif" class="side-gif left-up-gif" alt="Left Up GIF">
+    <img src="./left-down.gif" class="side-gif left-down-gif" alt="Left Down GIF">
+    <img src="./right-up.gif" class="side-gif right-up-gif" alt="Right Up GIF">
+    <img src="./right-down.gif" class="side-gif right-down-gif" alt="Right Down GIF">
 
     <h1>Detailed Mixtures & Construction Guide</h1>
 
@@ -50,7 +52,6 @@
             <li>Sulfur: 10%</li>
             <li>Fast ignition, high energy, short burn.</li>
         </ul>
-
         <h3>2. Longer Burn</h3>
         <ul>
             <li>Potassium Nitrate: 70%</li>
@@ -69,7 +70,6 @@
             <li>Aluminum Powder: 5%</li>
             <li>High thrust, short burn duration.</li>
         </ul>
-
         <h3>2. Longer Burn</h3>
         <ul>
             <li>Potassium Nitrate: 60%</li>
@@ -79,75 +79,36 @@
     </div>
 
     <div class="section">
-        <h2>Flash Powder (Aluminum-Based)</h2>
+        <h2>Flash Powder Mixtures</h2>
         <h3>1. Maximum Power (Rapid Ignition, Loudest Report)</h3>
         <ul>
             <li>Potassium Perchlorate: 70%</li>
             <li>Aluminum Powder (fine mesh): 30%</li>
-            <li>Very fast ignition, extremely bright flash, very loud explosion.</li>
+            <li>Extremely bright flash, loud explosion.</li>
         </ul>
-
         <h3>2. Longer Burn (Slightly Slower Flash)</h3>
         <ul>
             <li>Potassium Nitrate: 55%</li>
             <li>Aluminum Powder: 35%</li>
             <li>Sulfur: 10%</li>
-            <li>Bright flash with slightly longer burn, moderate sensitivity.</li>
+            <li>Bright flash with slightly longer burn.</li>
         </ul>
         <p class="warning">Highly sensitive and dangerous—handle with extreme caution.</p>
     </div>
 
     <div class="section">
-        <h2>Strobe Firework Mixtures</h2>
-        <ul>
-            <li>Potassium Nitrate or Potassium Perchlorate: ~50%</li>
-            <li>Sulfur: ~30%</li>
-            <li>Fine Magnesium or Aluminum Powder: ~20%</li>
-            <li>Creates intermittent bright flashes due to controlled combustion.</li>
-            <li>Insert mixture into small cardboard tube, use fuse or igniter.</li>
-            <li class="warning">Sensitive mixture, handle gently and ignite outdoors.</li>
-        </ul>
-    </div>
-
-    <div class="section">
-        <h2>Construction Guides</h2>
-        <h3>Rocket Construction</h3>
-        <ul>
-            <li>Use cardboard tube or PVC (schedule 40 recommended).</li>
-            <li>Insert clay plug and nozzle; drill a small hole for exhaust.</li>
-            <li>Pack fuel firmly, drill a core hole for thrust.</li>
-            <li>Add fuse or igniter, and fins for stability.</li>
-        </ul>
-
-        <h3>Firecracker Construction (PVC)</h3>
-        <ul>
-            <li>Use short thin-wall PVC pipe (3–6 inches).</li>
-            <li>Secure one end cap firmly.</li>
-            <li>Add fuel loosely to moderately packed.</li>
-            <li>Drill a small hole in other end cap, insert fuse or igniter.</li>
-            <li>Lightly secure cap to allow rapid pressure buildup.</li>
-        </ul>
-        <p class="warning">Safety: Use thin-wall PVC to avoid dangerous fragmentation.</p>
-    </div>
-
-    <div class="section">
-        <h2>Smoke Grenade Construction (Potassium Nitrate)</h2>
+        <h2>Smoke Grenade Mixtures</h2>
         <h3>1. Maximum Smoke Volume</h3>
         <ul>
             <li>Potassium Nitrate: 55%</li>
             <li>Sugar: 45%</li>
             <li>Baking soda (~2%) optional for denser smoke.</li>
         </ul>
-
         <h3>2. Longer Smoke Duration</h3>
         <ul>
             <li>Potassium Nitrate: 65%</li>
             <li>Sugar: 35%</li>
             <li>Produces steady, prolonged smoke.</li>
-        </ul>
-        <ul>
-            <li>Heat slowly until caramel-colored paste forms, then pour into cardboard tube or can.</li>
-            <li>Insert fuse before hardening fully.</li>
         </ul>
     </div>
 
@@ -159,6 +120,9 @@
             <li class="warning">Don't be irresponsible—handle all materials carefully.</li>
         </ul>
     </div>
+
+    <img src="./bottom.gif" class="bottom-gif" alt="Bottom GIF">
+    <img src="./bottom-bottom.gif" class="bottom-bottom-gif" alt="Bottom Bottom GIF">
 
 </body>
 </html>
