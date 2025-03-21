@@ -28,10 +28,11 @@
   .word {
     display: inline-block;
     white-space: nowrap;
-    margin-right: 0.25rem;
+    margin-right: 0.5em;
   }
   .letter {
     display: inline-block;
+    margin-right: 0.1em;
     font-size: clamp(1.5rem, 2.5vw, 2.5rem);
     font-weight: bold;
     animation: colorChange 2s infinite alternate;
@@ -86,7 +87,6 @@
         container.appendChild(wordSpan);
       });
     }
-
     applyColorAnimation("You have reached the not very hidden alternate page!", "animated-text");
     applyColorAnimation("Congratulations on absolutely nothing!", "animated-text-2");
   </script>
