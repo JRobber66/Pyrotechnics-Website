@@ -6,19 +6,6 @@
     <title>Rocket and Firecracker Mixtures Guide</title>
     <link rel="icon" href="./images/image.ico" type="image/x-icon">
     <style>
-        .no-pointer a {
-            text-decoration: none;
-            color: black;
-            cursor: default;
-        }
-        .image-button {
-            background: none;
-            border: none;
-            padding: 0;
-            cursor: default;
-            display: block;
-            margin: 0 auto;
-        }
         body { 
             font-family: Arial, sans-serif; 
             line-height: 1.6; 
@@ -33,7 +20,6 @@
 
         .side-gif {
             position: fixed;
-            width: 200px;
             z-index: 999;
         }
 
@@ -43,7 +29,16 @@
         .left-down-gif { left: 10px; bottom: 10%; }
         .right-up-gif { right: 10px; top: 10%; }
         .right-down-gif { right: 10px; bottom: 10%; }
-        .bottom-gif, .bottom-bottom-gif { display: block; margin: 20px auto; width: 300px; }
+        .bottom-gif, .bottom-bottom-gif { display: block; margin: 20px auto; }
+
+        @media (max-width: 768px) {
+            .side-gif {
+                width: 80px;
+            }
+            .bottom-gif, .bottom-bottom-gif {
+                width: 150px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -59,7 +54,7 @@
 
     <div class="section">
         <h2>Black Powder Mixtures</h2>
-        <h3>1. Maximum <span class="no-pointer"><a href="power.html">Power</a></span></h3>
+        <h3>1. Maximum <a href="power.html" style="color: black; text-decoration: none; cursor: default;">Power</a></h3>
         <ul>
             <li>Potassium Nitrate: 77%</li>
             <li>Charcoal: 13%</li>
@@ -76,46 +71,21 @@
     </div>
 
     <div class="section">
-        <h2>Sugar Rocket Fuel Mixtures</h2>
-        <h3>1. Maximum Power</h3>
-        <ul>
-            <li>Potassium Nitrate: 70%</li>
-            <li>Sugar: 25%</li>
-            <li>Aluminum Powder: 5%</li>
-            <li>High thrust, short burn duration.</li>
-        </ul>
-        <h3>2. Longer Burn</h3>
+        <h2>Smoke Bomb Mixtures</h2>
         <ul>
             <li>Potassium Nitrate: 60%</li>
             <li>Sugar: 40%</li>
-            <li>Easier ignition, slower, longer-lasting burn.</li>
-        </ul>
-    </div>
-
-    <div class="section">
-        <h2>Smoke Bomb Mixtures</h2>
-        <h3>1. Maximum Smoke Output</h3>
-        <ul>
-            <li>Potassium Nitrate: 55%</li>
-            <li>Sugar: 45%</li>
             <li>Optional: Baking soda (2%) to slow reaction for denser smoke.</li>
-        </ul>
-        <h3>2. Longer Burn Time</h3>
-        <ul>
-            <li>Potassium Nitrate: 65%</li>
-            <li>Sugar: 35%</li>
-            <li>Burns slower, producing steady smoke.</li>
         </ul>
     </div>
 
     <div class="section">
         <h2>Strobe Firework Mixtures</h2>
         <ul>
-            <li>Potassium Nitrate or Potassium Perchlorate: ~50%</li>
-            <li>Sulfur: ~30%</li>
-            <li>Fine Magnesium or Aluminum Powder: ~20%</li>
-            <li>Produces a pulsing strobe effect due to controlled combustion.</li>
-            <li>Best used in a small cardboard tube with a fuse or igniter.</li>
+            <li>Potassium Nitrate or Perchlorate: 50%</li>
+            <li>Sulfur: 30%</li>
+            <li>Fine Magnesium or Aluminum Powder: 20%</li>
+            <li>Pulsing strobe effect due to controlled combustion.</li>
         </ul>
     </div>
 
@@ -129,17 +99,7 @@
     </div>
 
     <img src="./images/bottom.gif" class="bottom-gif" alt="Bottom GIF">
-    <button class="image-button" onclick="location.href='text.html'">
-        <img src="./images/bottom-bottom.gif" class="bottom-bottom-gif" alt="Bottom Bottom GIF">
-    </button>
-    <style>
-        .image-button {
-            background: none;
-            border: none;
-            padding: 0;
-            cursor: default;
-        }
-    </style>
+    <a href="text.html"><img src="./images/bottom-bottom.gif" class="bottom-bottom-gif" alt="Bottom Bottom GIF"></a>
 
 </body>
 </html>
