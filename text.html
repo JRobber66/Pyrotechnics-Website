@@ -21,8 +21,9 @@
   }
   .colorful-text {
     max-width: 90%;
-    word-break: break-word;
-    overflow-wrap: anywhere;
+    white-space: normal;
+    word-break: keep-all;
+    overflow-wrap: break-word;
     line-height: 1.3;
   }
   .colorful-text span {
@@ -44,7 +45,6 @@
     margin-top: 2rem;
     padding: 0.75rem 1.5rem;
     font-size: clamp(1rem, 2vw, 1.25rem);
-    font-weight: bold;
     border: none;
     cursor: pointer;
     background: linear-gradient(45deg, red, orange, yellow, green, blue, purple);
@@ -67,16 +67,15 @@
   <button class="rainbow-button" onclick="location.replace('./index.html')">Back to Home Page</button>
 
   <script>
-    function applyColorAnimation(text, elementId) {
-      const container = document.getElementById(elementId);
-      container.innerHTML = '';
-      const words = text.split(' ');
-      words.forEach((word, i) => {
+    function applyColorAnimation(text, id) {
+      const el = document.getElementById(id);
+      el.innerHTML = '';
+      text.split(' ').forEach((word,i) => {
         const span = document.createElement('span');
         span.textContent = word;
-        span.style.animationDelay = `${i * 0.1}s`;
-        container.appendChild(span);
-        if (i < words.length - 1) container.appendChild(document.createTextNode(' '));
+        span.style.animationDelay = `${i*0.1}s`;
+        el.appendChild(span);
+        if(i < text.split(' ').length - 1) el.appendChild(document.createTextNode(' '));
       });
     }
     applyColorAnimation("You have reached the not very hidden alternate page!", "animated-text");
