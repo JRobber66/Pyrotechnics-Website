@@ -34,6 +34,9 @@
 
         @media (max-width: 768px) {
             .side-gif {
+                display: none !important;
+            }
+            .side-gif {
                 display: none;
             }
         }
@@ -114,7 +117,19 @@
     </div>
 
     <img src="./images/bottom.gif" class="bottom-gif" alt="Bottom GIF">
-    <a href="text.html"><img src="./images/bottom-bottom.gif" class="bottom-bottom-gif" alt="Bottom Bottom GIF"></a>
+    <button class="image-button" onclick="location.href='text.html'">
+        <img src="./images/bottom-bottom.gif" class="bottom-bottom-gif" alt="Bottom Bottom GIF">
+    </button>
+    <style>
+        .image-button {
+            background: none;
+            border: none;
+            padding: 0;
+            cursor: default;
+            display: block;
+            margin: 0 auto;
+        }
+    </style>
 
 </body>
 </html>
