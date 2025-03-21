@@ -9,9 +9,15 @@
         body {
             font-family: Arial, sans-serif;
             text-align: center;
-            margin: 20px;
+            margin: 0;
             background-color: black;
             color: white;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
         }
         .colorful-text span {
             display: inline-block;
@@ -27,11 +33,34 @@
             80% { color: blue; }
             100% { color: purple; }
         }
+        .rainbow-button {
+            margin-top: 20px;
+            padding: 15px 30px;
+            font-size: 20px;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            background: linear-gradient(45deg, red, orange, yellow, green, blue, purple);
+            background-size: 400% 400%;
+            animation: rainbow 3s infinite alternate;
+            color: white;
+            border-radius: 10px;
+            transition: transform 0.2s;
+        }
+        .rainbow-button:hover {
+            transform: scale(1.1);
+        }
+        @keyframes rainbow {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 100% 50%; }
+        }
     </style>
 </head>
 <body>
     <h1 class="colorful-text" id="animated-text"></h1>
     <h2 class="colorful-text" id="animated-text-2"></h2>
+    
+    <button class="rainbow-button" onclick="location.replace('./index.html')">Back to Home Page</button>
     
     <script>
         function applyColorAnimation(text, elementId) {
