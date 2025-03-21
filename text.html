@@ -3,16 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Text Page</title>
+    <title>Hidden Page</title>
+    <link rel="icon" href="images/icon.ico" type="image/x-icon">
     <style>
         body {
             font-family: Arial, sans-serif;
             text-align: center;
             margin: 20px;
+            background-color: black;
+            color: white;
+        }
+        .colorful-text span {
+            display: inline-block;
+            font-size: 24px;
+            font-weight: bold;
+            animation: colorChange 2s infinite alternate;
+        }
+        @keyframes colorChange {
+            0% { color: red; }
+            20% { color: orange; }
+            40% { color: yellow; }
+            60% { color: green; }
+            80% { color: blue; }
+            100% { color: purple; }
         }
     </style>
 </head>
 <body>
-    <h1>Text</h1>
+    <h1 class="colorful-text" id="animated-text"></h1>
+    <h2 class="colorful-text" id="animated-text-2"></h2>
+    
+    <script>
+        function applyColorAnimation(text, elementId) {
+            const container = document.getElementById(elementId);
+            container.innerHTML = '';
+            text.split('').forEach((char, index) => {
+                let span = document.createElement('span');
+                span.textContent = char;
+                span.style.animationDelay = `${index * 0.1}s`;
+                container.appendChild(span);
+            });
+        }
+        
+        applyColorAnimation("You have reached the not very hidden alternate page!", "animated-text");
+        applyColorAnimation("Congratulations on absolutely nothing!", "animated-text-2");
+    </script>
 </body>
 </html>
