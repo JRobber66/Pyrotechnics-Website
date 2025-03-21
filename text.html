@@ -15,7 +15,7 @@
         }
         .colorful-text span {
             display: inline-block;
-            font-size: 24px;
+            font-size: 36px;
             font-weight: bold;
             animation: colorChange 2s infinite alternate;
         }
@@ -39,7 +39,7 @@
             container.innerHTML = '';
             text.split('').forEach((char, index) => {
                 let span = document.createElement('span');
-                span.textContent = char;
+                span.textContent = char === ' ' ? '\u00A0' : char;
                 span.style.animationDelay = `${index * 0.1}s`;
                 container.appendChild(span);
             });
