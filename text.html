@@ -21,14 +21,17 @@
   }
   .colorful-text {
     max-width: 90%;
-    white-space: normal;
     word-break: keep-all;
     overflow-wrap: break-word;
     line-height: 1.3;
   }
-  .colorful-text span {
-    display: inline;
+  .word {
+    display: inline-block;
+    white-space: nowrap;
     margin-right: 0.25rem;
+  }
+  .letter {
+    display: inline-block;
     font-size: clamp(1.5rem, 2.5vw, 2.5rem);
     font-weight: bold;
     animation: colorChange 2s infinite alternate;
@@ -68,16 +71,22 @@
 
   <script>
     function applyColorAnimation(text, id) {
-      const el = document.getElementById(id);
-      el.innerHTML = '';
-      text.split(' ').forEach((word,i) => {
-        const span = document.createElement('span');
-        span.textContent = word;
-        span.style.animationDelay = `${i*0.1}s`;
-        el.appendChild(span);
-        if(i < text.split(' ').length - 1) el.appendChild(document.createTextNode(' '));
+      const container = document.getElementById(id);
+      container.innerHTML = '';
+      text.split(' ').forEach((word, wi) => {
+        const wordSpan = document.createElement('span');
+        wordSpan.className = 'word';
+        word.split('').forEach((char, li) => {
+          const letter = document.createElement('span');
+          letter.className = 'letter';
+          letter.textContent = char;
+          letter.style.animationDelay = `${(wi * 0.5) + (li * 0.1)}s`;
+          wordSpan.appendChild(letter);
+        });
+        container.appendChild(wordSpan);
       });
     }
+
     applyColorAnimation("You have reached the not very hidden alternate page!", "animated-text");
     applyColorAnimation("Congratulations on absolutely nothing!", "animated-text-2");
   </script>
