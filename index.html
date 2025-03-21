@@ -16,9 +16,28 @@
         .section { margin-bottom: 30px; }
         ul { margin-left: 20px; }
         .warning { color: red; font-weight: bold; }
+
+        .side-gif {
+            position: fixed;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 100px;
+            z-index: 999;
+        }
+
+        .left-gif {
+            left: 10px;
+        }
+
+        .right-gif {
+            right: 10px;
+        }
     </style>
 </head>
 <body>
+
+    <img src="left.gif" class="side-gif left-gif" alt="Left GIF">
+    <img src="right.gif" class="side-gif right-gif" alt="Right GIF">
 
     <h1>Detailed Mixtures & Construction Guide</h1>
 
