@@ -25,46 +25,27 @@
             padding: 15px;
             border-radius: 10px;
             display: inline-block;
-            text-align: left;
-        }
-        .loading {
-            color: gray;
         }
     </style>
 </head>
 <body>
 
-    <h1>Your IP Address and Device Info</h1>
+    <h1>Your IP Address</h1>
     <div class="info-box">
-        <p><strong>IP:</strong> <span id="ip" class="loading">Fetching...</span></p>
-        <p><strong>City:</strong> <span id="city" class="loading">Fetching...</span></p>
-        <p><strong>Region:</strong> <span id="region" class="loading">Fetching...</span></p>
-        <p><strong>Country:</strong> <span id="country" class="loading">Fetching...</span></p>
-        <p><strong>ISP:</strong> <span id="isp" class="loading">Fetching...</span></p>
-        <p><strong>VPN Detected:</strong> <span id="vpn" class="loading">Fetching...</span></p>
-        <p><strong>Browser:</strong> <span id="browser"></span></p>
-        <p><strong>Screen Resolution:</strong> <span id="resolution"></span></p>
+        <p><strong>IP:</strong> <span id="ip">Fetching...</span></p>
+        <p><strong>Browser:</strong> <span id="browser">Detecting...</span></p>
+        <p><strong>Screen Resolution:</strong> <span id="resolution">Detecting...</span></p>
     </div>
 
     <script>
-        // Fetch user's IP and location data
-        fetch('https://ip-api.com/json/')
+        // Fetch user's IP from a public API
+        fetch('https://api64.ipify.org?format=json')
             .then(response => response.json())
             .then(data => {
-                document.getElementById('ip').textContent = data.query;
-                document.getElementById('city').textContent = data.city;
-                document.getElementById('region').textContent = data.regionName;
-                document.getElementById('country').textContent = data.country;
-                document.getElementById('isp').textContent = data.isp;
-                document.getElementById('vpn').textContent = data.proxy ? "Yes" : "No";
+                document.getElementById('ip').textContent = data.ip;
             })
             .catch(() => {
                 document.getElementById('ip').textContent = "Could not fetch IP";
-                document.getElementById('city').textContent = "Unknown";
-                document.getElementById('region').textContent = "Unknown";
-                document.getElementById('country').textContent = "Unknown";
-                document.getElementById('isp').textContent = "Unknown";
-                document.getElementById('vpn').textContent = "Unknown";
             });
 
         // Get browser and screen resolution info
