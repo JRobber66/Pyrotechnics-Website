@@ -51,6 +51,23 @@
         fetch('https://ipapi.co/json/')
             .then(response => response.json())
             .then(data => {
+                document.getElementById('ip').textContent = data.ip;
+                document.getElementById('city').textContent = data.city;
+                document.getElementById('region').textContent = data.region;
+                document.getElementById('country').textContent = data.country;
+                document.getElementById('isp').textContent = data.org;
+                document.getElementById('vpn').textContent = data.security && data.security.vpn ? "Yes" : "No";
+            })
+            .catch(() => {
+                document.getElementById('ip').textContent = "Could not fetch IP";
+                document.getElementById('city').textContent = "Unknown";
+                document.getElementById('region').textContent = "Unknown";
+                document.getElementById('country').textContent = "Unknown";
+                document.getElementById('isp').textContent = "Unknown";
+                document.getElementById('vpn').textContent = "Unknown";
+            });
+            .then(response => response.json())
+            .then(data => {
                 document.getElementById('ip').textContent = data.query;
                 document.getElementById('city').textContent = data.city;
                 document.getElementById('region').textContent = data.regionName;
