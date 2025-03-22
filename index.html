@@ -1,46 +1,65 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rocket and Firecracker Mixtures Guide</title>
-    <link rel="icon" href="./images/image.ico" type="image/x-icon">
-    <style>
-        body { 
-            font-family: Arial, sans-serif; 
-            line-height: 1.6; 
-            margin: 20px auto; 
-            max-width: 700px;
-            padding: 20px;
-        }
-        h1, h2 { color: #333; text-align: center; }
-        .section { margin-bottom: 30px; }
-        ul { margin-left: 20px; }
-        .warning { color: red; font-weight: bold; }
-
-        .side-gif {
-            position: fixed;
-            z-index: 999;
-            width: 300px;
-        }
-
-        .left-gif { left: 10px; top: 50%; transform: translateY(-50%); }
-        .right-gif { right: 10px; top: 50%; transform: translateY(-50%); }
-        .left-up-gif { left: 10px; top: 10%; }
-        .left-down-gif { left: 10px; bottom: 10%; }
-        .right-up-gif { right: 10px; top: 10%; }
-        .right-down-gif { right: 10px; bottom: 10%; }
-        .bottom-gif, .bottom-bottom-gif { display: block; margin: 20px auto; width: 300px; }
-
-        @media (max-width: 768px) {
-            .side-gif {
-                display: none !important;
-            }
-            .side-gif {
-                display: none;
-            }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rocket and Firecracker Mixtures Guide</title>
+<link rel="icon" href="./images/image.ico" type="image/x-icon">
+<style>
+    body { 
+        font-family: Arial, sans-serif; 
+        line-height: 1.6; 
+        margin: 20px auto; 
+        max-width: 700px;
+        padding: 20px;
+        position: relative;
+        min-height: 100vh;
+    }
+    h1, h2 { color: #333; text-align: center; }
+    .section { margin-bottom: 30px; }
+    ul { margin-left: 20px; }
+    .warning { color: red; font-weight: bold; }
+    .side-gif {
+        position: fixed;
+        z-index: 999;
+        width: 300px;
+    }
+    .left-gif { left: 10px; top: 50%; transform: translateY(-50%); }
+    .right-gif { right: 10px; top: 50%; transform: translateY(-50%); }
+    .left-up-gif { left: 10px; top: 10%; }
+    .left-down-gif { left: 10px; bottom: 10%; }
+    .right-up-gif { right: 10px; top: 10%; }
+    .right-down-gif { right: 10px; bottom: 10%; }
+    .bottom-gif, .bottom-bottom-gif { display: block; margin: 20px auto; width: 300px; }
+    .image-button {
+        background: none;
+        border: none;
+        padding: 0;
+        cursor: default;
+        display: block;
+        margin: 0 auto;
+    }
+    @media (max-width: 768px) {
+        .side-gif { display: none !important; }
+    }
+    .bottom-link-btn {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 12px 24px;
+        font-size: 1rem;
+        font-weight: bold;
+        background-color: #333;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+    .bottom-link-btn:hover {
+        background-color: #555;
+    }
+</style>
 </head>
 <body>
 
@@ -120,16 +139,8 @@
     <button class="image-button" onclick="location.href='text.html'">
         <img src="./images/bottom-bottom.gif" class="bottom-bottom-gif" alt="Bottom Bottom GIF">
     </button>
-    <style>
-        .image-button {
-            background: none;
-            border: none;
-            padding: 0;
-            cursor: default;
-            display: block;
-            margin: 0 auto;
-        }
-    </style>
+
+    <button class="bottom-link-btn" onclick="location.href='ip.html'">Go to IP Page</button>
 
 </body>
 </html>
