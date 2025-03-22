@@ -1,119 +1,183 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Rocket and Firecracker Mixtures Guide</title>
-<link rel="icon" href="./images/image.ico" type="image/x-icon">
-<style>
-  body { 
-    font-family: Arial, sans-serif; 
-    margin: 20px auto; 
-    max-width: 700px;
-    padding: 20px;
-    position: relative;
-    min-height: 100vh;
-    line-height: 1.6;
-  }
-  h1,h2 { text-align:center; color:#333; }
-  .section { margin-bottom:30px; }
-  ul { margin-left:20px; }
-  .warning { color:red; font-weight:bold; }
-  .side-gif { position:fixed; width:200px; z-index:999; }
-  .left-gif { left:10px; top:50%; transform:translateY(-50%); }
-  .right-gif { right:10px; top:50%; transform:translateY(-50%); }
-  @media(max-width:768px){ .side-gif{ display:none!important; } }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rocket and Firecracker Mixtures Guide</title>
+    <link rel="icon" href="./images/image.ico" type="image/x-icon">
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 20px auto;
+            max-width: 700px;
+            padding: 20px;
+        }
 
-  /* Hidden Smoke Button */
-  #smokeBtn { all:unset; display:block; width:100%; cursor:pointer; }
-  #smokeBtn h2 { opacity:0; user-select:none; }
+        h1, h2 {
+            color: #333;
+            text-align: center;
+        }
 
-  /* Smoke Overlay */
-  .smoke-layer {
-    position:fixed;
-    top:-100%;
-    left:0;
-    width:100%;
-    height:100%;
-    background:url('./images/pixel-smoke.gif') repeat;
-    background-size:cover;
-    animation:slideSmoke 3s forwards;
-    pointer-events:none;
-    z-index:9999;
-  }
-  .smoke-layer:nth-child(1){ filter:hue-rotate(0deg); opacity:0.6;}
-  .smoke-layer:nth-child(2){ filter:hue-rotate(60deg); animation-delay:0.5s; opacity:0.4;}
-  .smoke-layer:nth-child(3){ filter:hue-rotate(120deg); animation-delay:1s; opacity:0.3;}
-  @keyframes slideSmoke{ to{top:0;} }
-</style>
+        .section {
+            margin-bottom: 30px;
+        }
+
+        ul {
+            margin-left: 20px;
+        }
+
+        .warning {
+            color: red;
+            font-weight: bold;
+        }
+
+        .side-gif {
+            position: fixed;
+            z-index: 999;
+            width: 300px;
+        }
+
+        .left-gif {
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .right-gif {
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .left-up-gif {
+            left: 10px;
+            top: 10%;
+        }
+
+        .left-down-gif {
+            left: 10px;
+            bottom: 10%;
+        }
+
+        .right-up-gif {
+            right: 10px;
+            top: 10%;
+        }
+
+        .right-down-gif {
+            right: 10px;
+            bottom: 10%;
+        }
+
+        .bottom-gif, .bottom-bottom-gif {
+            display: block;
+            margin: 20px auto;
+            width: 300px;
+        }
+
+        @media (max-width: 768px) {
+            .side-gif {
+                display: none !important;
+            }
+        }
+    </style>
 </head>
 <body>
 
-<img src="./images/left.gif" class="side-gif left-gif" alt="">
-<img src="./images/right.gif" class="side-gif right-gif" alt="">
+    <img src="./images/left.gif" class="side-gif left-gif" alt="Left GIF">
+    <img src="./images/right.gif" class="side-gif right-gif" alt="Right GIF">
+    <img src="./images/left-up.gif" class="side-gif left-up-gif" alt="Left Up GIF">
+    <img src="./images/left-down.gif" class="side-gif left-down-gif" alt="Left Down GIF">
+    <img src="./images/right-up.gif" class="side-gif right-up-gif" alt="Right Up GIF">
+    <img src="./images/right-down.gif" class="side-gif right-down-gif" alt="Right Down GIF">
 
-<h1>Detailed Mixtures & Construction Guide</h1>
+    <h1>Detailed Mixtures & Construction Guide</h1>
 
-<div class="section">
-  <h2>Black Powder Mixtures</h2>
-  <h3>1. Maximum <a href="power.html" style="text-decoration:none;color:black;cursor:default;">Power</a></h3>
-  <ul>
-    <li>Potassium Nitrate: 77%</li><li>Charcoal:13%</li><li>Sulfur:10%</li>
-    <li>Fast ignition, high energy, short burn.</li>
-  </ul>
-  <h3>2. Longer Burn</h3>
-  <ul>
-    <li>Potassium Nitrate:70%</li><li>Charcoal:20%</li><li>Sulfur:10%</li>
-    <li>Moderate ignition, steady sparks.</li>
-  </ul>
-</div>
+    <div class="section">
+        <h2>Black Powder Mixtures</h2>
+        
+        <h3>1. Maximum <a href="power.html" style="color: black; text-decoration: none; cursor: default;">Power</a></h3>
+        <ul>
+            <li>Potassium Nitrate: 77%</li>
+            <li>Charcoal: 13%</li>
+            <li>Sulfur: 10%</li>
+            <li>Fast ignition, high energy, short burn.</li>
+        </ul>
 
-<div class="section">
-  <button id="smokeBtn"><h2>Smoke Bomb Mixtures</h2></button>
-  <ul>
-    <li>Potassium Nitrate:60%</li><li>Sugar:40%</li>
-    <li>Optional: Baking soda (2%) for denser smoke.</li>
-  </ul>
-</div>
+        <h3>2. Longer Burn</h3>
+        <ul>
+            <li>Potassium Nitrate: 70%</li>
+            <li>Charcoal: 20%</li>
+            <li>Sulfur: 10%</li>
+            <li>Moderate ignition, steady sparks.</li>
+        </ul>
+    </div>
 
-<div class="section">
-  <h2>Strobe Firework Mixtures</h2>
-  <ul>
-    <li>Potassium Nitrate/Perchlorate:50%</li>
-    <li>Sulfur:30%</li><li>Fine Magnesium/Aluminum:20%</li>
-  </ul>
-</div>
+    <div class="section">
+        <h2>Smoke Bomb Mixtures</h2>
+        <ul>
+            <li>Potassium Nitrate: 60%</li>
+            <li>Sugar: 40%</li>
+            <li>Optional: Baking soda (2%) to slow reaction for denser smoke.</li>
+        </ul>
+    </div>
 
-<div class="section">
-  <h2>Sugar Rocket Fuel Mixtures</h2>
-  <h3>1. Maximum Power</h3>
-  <ul>
-    <li>Potassium Nitrate:70%</li><li>Sugar:25%</li><li>Aluminum Powder:5%</li>
-  </ul>
-  <h3>2. Longer Burn</h3>
-  <ul>
-    <li>Potassium Nitrate:60%</li><li>Sugar:40%</li>
-  </ul>
-</div>
+    <div class="section">
+        <h2>Strobe Firework Mixtures</h2>
+        <ul>
+            <li>Potassium Nitrate or Perchlorate: 50%</li>
+            <li>Sulfur: 30%</li>
+            <li>Fine Magnesium or Aluminum Powder: 20%</li>
+            <li>Pulsing strobe effect due to controlled combustion.</li>
+        </ul>
+    </div>
 
-<div class="section">
-  <h2>Safety Precautions</h2>
-  <ul>
-    <li>Always test small quantities first.</li>
-    <li>Store materials safely, away from ignition sources.</li>
-    <li class="warning">Handle responsibly—this guide is informational only.</li>
-  </ul>
-</div>
+    <div class="section">
+        <h2>Sugar Rocket Fuel Mixtures</h2>
 
-<script>
-document.getElementById('smokeBtn').addEventListener('click',()=>{
-  for(let i=0;i<3;i++){
-    const layer=document.createElement('div');
-    layer.className='smoke-layer';
-    document.body.appendChild(layer);
-    setTimeout(()=>layer.remove(),4000);
-  }
-});
-</script>
+        <h3>1. Maximum Power</h3>
+        <ul>
+            <li>Potassium Nitrate: 70%</li>
+            <li>Sugar: 25%</li>
+            <li>Aluminum Powder: 5%</li>
+            <li>High thrust, short burn duration.</li>
+        </ul>
+
+        <h3>2. Longer Burn</h3>
+        <ul>
+            <li>Potassium Nitrate: 60%</li>
+            <li>Sugar: 40%</li>
+            <li>Easier ignition, slower, longer-lasting burn.</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>Safety Precautions</h2>
+        <ul>
+            <li>Always test small quantities first.</li>
+            <li>Store materials safely, away from ignition sources.</li>
+            <li class="warning">Don't be irresponsible—handle all materials carefully.</li>
+        </ul>
+    </div>
+
+    <img src="./images/bottom.gif" class="bottom-gif" alt="Bottom GIF">
+
+    <button class="image-button" onclick="location.href='text.html'">
+        <img src="./images/bottom-bottom.gif" class="bottom-bottom-gif" alt="Bottom Bottom GIF">
+    </button>
+
+    <style>
+        .image-button {
+            background: none;
+            border: none;
+            padding: 0;
+            cursor: default;
+            display: block;
+            margin: 0 auto;
+        }
+    </style>
+
 </body>
 </html>
