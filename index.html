@@ -9,27 +9,48 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            line-height: 1.6;
-            margin: 20px auto;
-            max-width: 700px;
-            padding: 20px;
+            background-color: #111;
+            color: #f0f0f0;
+            margin: 0;
+            padding: 0;
         }
 
         h1, h2 {
-            color: #333;
             text-align: center;
+            color: #ff9800;
+        }
+
+        h3 {
+            color: #fbc02d;
         }
 
         .section {
-            margin-bottom: 30px;
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 20px;
+            background-color: #1e1e1e;
+            border-radius: 8px;
         }
 
         ul {
             margin-left: 20px;
         }
 
+        li {
+            margin-bottom: 8px;
+        }
+
+        a {
+            color: #4fc3f7;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
         .warning {
-            color: red;
+            color: #ff5252;
             font-weight: bold;
         }
 
@@ -39,42 +60,52 @@
             width: 300px;
         }
 
-        .left-gif {
-            left: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-        }
-
-        .right-gif {
-            right: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-        }
-
-        .left-up-gif {
-            left: 10px;
-            top: 10%;
-        }
-
-        .left-down-gif {
-            left: 10px;
-            bottom: 10%;
-        }
-
-        .right-up-gif {
-            right: 10px;
-            top: 10%;
-        }
-
-        .right-down-gif {
-            right: 10px;
-            bottom: 10%;
-        }
+        .left-gif { left: 10px; top: 50%; transform: translateY(-50%); }
+        .right-gif { right: 10px; top: 50%; transform: translateY(-50%); }
+        .left-up-gif { left: 10px; top: 10%; }
+        .left-down-gif { left: 10px; bottom: 10%; }
+        .right-up-gif { right: 10px; top: 10%; }
+        .right-down-gif { right: 10px; bottom: 10%; }
 
         .bottom-gif, .bottom-bottom-gif {
             display: block;
             margin: 20px auto;
             width: 300px;
+        }
+
+        .image-button {
+            background: none;
+            border: none;
+            padding: 0;
+            cursor: default;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .experiments-link {
+            text-align: center;
+            margin: 40px 0 20px;
+        }
+
+        .experiments-link a {
+            color: #4fc3f7;
+            font-size: 1.2em;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        .experiments-link a:hover {
+            text-decoration: underline;
+        }
+
+        .invisible-link {
+            color: inherit;
+            text-decoration: none;
+            cursor: text;
+        }
+
+        .invisible-link:hover {
+            text-decoration: none;
         }
 
         @media (max-width: 768px) {
@@ -98,7 +129,7 @@
     <div class="section">
         <h2>Black Powder Mixtures</h2>
         
-        <h3>1. Maximum <a href="power.html" style="color: black; text-decoration: none; cursor: default;">Power</a></h3>
+        <h3>1. Maximum <a href="power.html" class="invisible-link">Power</a></h3>
         <ul>
             <li>Potassium Nitrate: 77%</li>
             <li>Charcoal: 13%</li>
@@ -162,22 +193,15 @@
         </ul>
     </div>
 
+    <div class="experiments-link">
+        <a href="/index-of-experiments.html">Experiments</a>
+    </div>
+
     <img src="./images/bottom.gif" class="bottom-gif" alt="Bottom GIF">
 
     <button class="image-button" onclick="location.href='text.html'">
         <img src="./images/bottom-bottom.gif" class="bottom-bottom-gif" alt="Bottom Bottom GIF">
     </button>
-
-    <style>
-        .image-button {
-            background: none;
-            border: none;
-            padding: 0;
-            cursor: default;
-            display: block;
-            margin: 0 auto;
-        }
-    </style>
 
 </body>
 </html>
