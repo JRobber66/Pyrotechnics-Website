@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Detailed Mixture Analysis - 25g to 500g Increments</title>
+<style>
+  body {
+    background-color: #1e1e1e;
+    color: #e0e0e0;
+    font-family: Arial, sans-serif;
+    margin: 20px;
+  }
+  h1, h2, h3 {
+    text-align: center;
+    color: #ffa500;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+  }
+  th, td {
+    border: 1px solid #555;
+    padding: 10px;
+    text-align: center;
+  }
+  th {
+    background-color: #333;
+  }
+  tr:nth-child(even) {
+    background-color: #2a2a2a;
+  }
+  .section {
+    margin-bottom: 40px;
+  }
+  .analysis {
+    background-color: #2a2a2a;
+    border-left: 4px solid #ffa500;
+    padding: 15px;
+    border-radius: 5px;
+    margin-bottom: 40px;
+  }
+</style>
+
+<style>
+.home-button {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    background-color: #ffa500;
+    color: #1e1e1e;
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    text-align: center;
+    line-height: 40px;
+    text-decoration: none;
+    font-size: 20px;
+    font-weight: bold;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+.home-button:hover {
+    background-color: #ffb733;
+}
+</style>
+</head>
+<body><a class="home-button" href="index.html">🏠</a>
+<h1>Detailed Mixture Analysis (25g to 500g Increments)</h1>
+<div class="section">
+<h2>Original Recipe Percentages</h2>
+<p style="text-align:center;">50% Potassium Nitrate (KNO₃) | 25% Aluminum | 17% Sulfur | 8% Sugar</p>
+</div>
+<div class="section analysis">
+<h2>Detailed Effects of Slight Changes</h2>
+<ul>
+<li><strong>Potassium Nitrate (KNO₃):</strong> Increasing KNO₃ boosts oxidation and reaction speed, leading to higher pressure and faster combustion. Too much can over-oxidize and destabilize the mix. Decreasing slows the reaction and reduces output.</li>
+<li><strong>Aluminum:</strong> Increasing aluminum raises thermal output, increases heat and gas expansion, and makes the reaction more aggressive. Reducing aluminum softens the reaction and decreases peak temperature.</li>
+<li><strong>Sulfur:</strong> Increasing sulfur lowers ignition temperature, speeds burn initiation, and makes ignition easier, but raises risk of accidental ignition. Lower sulfur content improves stability but makes ignition harder.</li>
+<li><strong>Sugar:</strong> Higher sugar content increases gas production and helps with ignition continuity. Too much can slow down burn rate and reduce power. Less sugar can make the mixture harder to light but slightly cleaner burning.</li>
+</ul>
+<p>Each 1% change from the baseline can meaningfully impact the reaction profile. Positive shifts make reactions more energetic, while negative shifts dampen performance and increase safety margins. Balance is key.</p>
+</div>
+<div id="mixture-sections"></div>
+<script>
+const container = document.getElementById('mixture-sections');
+
+function createTable(title, rows) {
+  let html = `<div class="section"><h2>${title}</h2><table>`;
+  html += '<thead><tr><th>Total Batch (g)</th><th>KNO₃ (g)</th><th>Aluminum (g)</th><th>Sulfur (g)</th><th>Sugar (g)</th><th>Notes</th></tr></thead><tbody>';
+  html += rows.join('');
+  html += '</tbody></table></div>';
+  return html;
+}
+
+function generateTables() {
+  const basePercents = { kno3: 0.50, aluminum: 0.25, sulfur: 0.17, sugar: 0.08 };
+  const groupSize = 100; // Split sections every 100g
+
+  const groups = {};
+
+  for (let total = 25; total <= 500; total += 25) {
+    const kno3 = Math.round(total * basePercents.kno3);
+    const aluminum = Math.round(total * basePercents.aluminum);
+    const sulfur = Math.round(total * basePercents.sulfur);
+    const sugar = Math.round(total * basePercents.sugar);
+
+    const groupKey = `${Math.floor((total - 25) / groupSize) * groupSize + 25}-${Math.floor((total - 25) / groupSize) * groupSize + groupSize}g`;
+
+    if (!groups[groupKey]) groups[groupKey] = [];
+
+    groups[groupKey].push(`<tr><td>${total}g</td><td>${kno3}g</td><td>${aluminum}g</td><td>${sulfur}g</td><td>${sugar}g</td><td>Balanced mix at ${total}g, expect moderate to strong reaction depending on confinement.</td></tr>`);
+
+    // Variations
+    const variations = [
+      { label: '+1% KNO₃', kno3Adj: 0.01 },
+      { label: '-1% KNO₃', kno3Adj: -0.01 },
+      { label: '+1% Aluminum', aluminumAdj: 0.01 },
+      { label: '-1% Aluminum', aluminumAdj: -0.01 },
+      { label: '+1% Sulfur', sulfurAdj: 0.01 },
+      { label: '-1% Sulfur', sulfurAdj: -0.01 },
+      { label: '+1% Sugar', sugarAdj: 0.01 },
+      { label: '-1% Sugar', sugarAdj: -0.01 }
+    ];
+
+    variations.forEach(variation => {
+      const kno3Var = Math.round(total * (basePercents.kno3 + (variation.kno3Adj || 0)));
+      const aluminumVar = Math.round(total * (basePercents.aluminum + (variation.aluminumAdj || 0)));
+      const sulfurVar = Math.round(total * (basePercents.sulfur + (variation.sulfurAdj || 0)));
+      const sugarVar = Math.round(total * (basePercents.sugar + (variation.sugarAdj || 0)));
+
+      const noteDetail = `${variation.label}: Adjusts performance. Higher increases burn rate and heat, lower decreases reactivity and stability.`;
+
+      groups[groupKey].push(`<tr><td>${total}g (${variation.label})</td><td>${kno3Var}g</td><td>${aluminumVar}g</td><td>${sulfurVar}g</td><td>${sugarVar}g</td><td>${noteDetail}</td></tr>`);
+    });
+  }
+
+  Object.entries(groups).forEach(([title, rows]) => {
+    container.innerHTML += createTable(`Batch Group: ${title}`, rows);
+  });
+}
+
+generateTables();
+</script>
+</body>
+</html>

@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Accurate Mixture Table - Up to 300g</title>
+<style>
+  body {
+    background-color: #1e1e1e;
+    color: #e0e0e0;
+    font-family: Arial, sans-serif;
+    margin: 20px;
+  }
+  h1, h2, h3 {
+    text-align: center;
+    color: #ffa500;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+  }
+  th, td {
+    border: 1px solid #555;
+    padding: 10px;
+    text-align: center;
+  }
+  th {
+    background-color: #333;
+  }
+  tr:nth-child(even) {
+    background-color: #2a2a2a;
+  }
+  .section-title {
+    color: #ffa500;
+    margin-top: 40px;
+  }
+  .percentages {
+    background-color: #333333;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 30px;
+    text-align: center;
+  }
+  .effects-box {
+    background-color: #2a2a2a;
+    border-left: 4px solid #ffa500;
+    padding: 15px;
+    margin: 30px 0;
+    border-radius: 5px;
+  }
+</style>
+
+<style>
+.home-button {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    background-color: #ffa500;
+    color: #1e1e1e;
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    text-align: center;
+    line-height: 40px;
+    text-decoration: none;
+    font-size: 20px;
+    font-weight: bold;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+.home-button:hover {
+    background-color: #ffb733;
+}
+</style>
+</head>
+<body><a class="home-button" href="index.html">🏠</a>
+<h1>Accurate Mixture Table (Whole Grams, Up to 300g)</h1>
+<div class="percentages">
+<h3>Original Recipe Percentages</h3>
+<p>50% Potassium Nitrate (KNO₃) | 25% Aluminum | 17% Sulfur | 8% Sugar</p>
+</div>
+<div id="mixture-sections"></div>
+<div class="effects-box">
+<h3>Effects of Tweaking Each Ingredient</h3>
+<ul>
+<li><strong>Increase Potassium Nitrate (KNO₃):</strong> Higher oxidizer content speeds reaction, increases burn rate and potential pressure spike. Risk of instability if overdone.</li>
+<li><strong>Decrease Potassium Nitrate (KNO₃):</strong> Slower reaction, incomplete burn, reduced pressure output.</li>
+<li><strong>Increase Aluminum:</strong> Boosts heat generation and gas expansion, can lead to sharper pressure rise and more violent reaction.</li>
+<li><strong>Decrease Aluminum:</strong> Less thermal output, slower energy release, softer overall burn.</li>
+<li><strong>Increase Sulfur:</strong> Lowers ignition temperature, speeds burn, risk of spontaneous ignition if excessive.</li>
+<li><strong>Decrease Sulfur:</strong> Harder to ignite, slower reaction, more stable.</li>
+<li><strong>Increase Sugar:</strong> Slightly more gas production and ignition help, increases flame visibility but can slow burn if excessive.</li>
+<li><strong>Decrease Sugar:</strong> Reduces gas output, may impact ease of ignition.</li>
+</ul>
+</div>
+<h2 class="section-title">Slight Variations (With Offsets)</h2>
+<p style="text-align: center; margin-bottom: 20px;">
+<a href="detailed-pipe-mixture.html" style="color: #ffa500; text-decoration: underline;">
+    ➔ View Detailed Mixture Breakdown (25g–500g Increments)
+  </a>
+</p>
+<div id="variation-sections"></div>
+<script>
+const basePercents = {
+  kno3: 0.50,
+  aluminum: 0.25,
+  sulfur: 0.17,
+  sugar: 0.08
+};
+
+const mixtureContainer = document.getElementById('mixture-sections');
+const variationContainer = document.getElementById('variation-sections');
+
+function isWholeNumber(value) {
+  return Math.abs(value - Math.round(value)) < 0.0001;
+}
+
+function createTable(title, rows) {
+  const section = document.createElement('div');
+  const heading = document.createElement('h2');
+  heading.textContent = title;
+
+  const table = document.createElement('table');
+  table.innerHTML = `
+    <thead>
+      <tr>
+        <th>Total Batch (g)</th>
+        <th>Potassium Nitrate</th>
+        <th>Aluminum</th>
+        <th>Sulfur</th>
+        <th>Sugar</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${rows.join('')}
+    </tbody>
+  `;
+
+  section.appendChild(heading);
+  section.appendChild(table);
+  return section;
+}
+
+const batchGroups = {};
+
+for (let total = 1; total <= 300; total++) {
+  const kno3 = total * basePercents.kno3;
+  const aluminum = total * basePercents.aluminum;
+  const sulfur = total * basePercents.sulfur;
+  const sugar = total * basePercents.sugar;
+
+  if (isWholeNumber(kno3) && isWholeNumber(aluminum) && isWholeNumber(sulfur) && isWholeNumber(sugar)) {
+    const row = `
+      <tr>
+        <td>${total}g</td>
+        <td>${Math.round(kno3)}g</td>
+        <td>${Math.round(aluminum)}g</td>
+        <td>${Math.round(sulfur)}g</td>
+        <td>${Math.round(sugar)}g</td>
+      </tr>
+    `;
+
+    const group = `${Math.floor(total / 50) * 50}-${Math.floor(total / 50) * 50 + 49}g`;
+
+    if (!batchGroups[group]) batchGroups[group] = [];
+    batchGroups[group].push(row);
+  }
+}
+
+Object.entries(batchGroups).forEach(([group, rows]) => {
+  mixtureContainer.appendChild(createTable(`Batch Size: ${group}`, rows));
+});
+
+function createVariationTable(title, rows) {
+  const section = document.createElement('div');
+  const heading = document.createElement('h2');
+  heading.textContent = title;
+
+  const table = document.createElement('table');
+  table.innerHTML = `
+    <thead>
+      <tr>
+        <th>Total Batch (g)</th>
+        <th>Potassium Nitrate</th>
+        <th>Aluminum</th>
+        <th>Sulfur</th>
+        <th>Sugar</th>
+        <th>KNO₃ Offset (%)</th>
+        <th>Al Offset (%)</th>
+        <th>Sulfur Offset (%)</th>
+        <th>Sugar Offset (%)</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${rows.join('')}
+    </tbody>
+  `;
+
+  section.appendChild(heading);
+  section.appendChild(table);
+  return section;
+}
+
+const variationGroups = {};
+
+function generateVariationRow(total, kno3Adj, alAdj, sulfurAdj, sugarAdj) {
+  const kno3 = Math.round(total * (basePercents.kno3 + kno3Adj));
+  const aluminum = Math.round(total * (basePercents.aluminum + alAdj));
+  const sulfur = Math.round(total * (basePercents.sulfur + sulfurAdj));
+  const sugar = Math.round(total * (basePercents.sugar + sugarAdj));
+
+  const offsetPercent = (actual, expected) => (((actual / total) - expected) * 100).toFixed(2);
+
+  const row = `
+    <tr>
+      <td>${total}g</td>
+      <td>${kno3}g</td>
+      <td>${aluminum}g</td>
+      <td>${sulfur}g</td>
+      <td>${sugar}g</td>
+      <td>${offsetPercent(kno3, basePercents.kno3)}%</td>
+      <td>${offsetPercent(aluminum, basePercents.aluminum)}%</td>
+      <td>${offsetPercent(sulfur, basePercents.sulfur)}%</td>
+      <td>${offsetPercent(sugar, basePercents.sugar)}%</td>
+    </tr>
+  `;
+
+  const group = `${Math.floor(total / 50) * 50}-${Math.floor(total / 50) * 50 + 49}g`;
+
+  if (!variationGroups[group]) variationGroups[group] = [];
+  variationGroups[group].push(row);
+}
+
+for (let total = 50; total <= 300; total += 25) {
+  generateVariationRow(total, 0.01, -0.01, 0, 0);
+  generateVariationRow(total, -0.01, 0.01, 0, 0);
+  generateVariationRow(total, 0, 0, 0.01, -0.01);
+  generateVariationRow(total, 0, 0, -0.01, 0.01);
+}
+
+Object.entries(variationGroups).forEach(([group, rows]) => {
+  variationContainer.appendChild(createVariationTable(`Batch Size: ${group}`, rows));
+});
+
+</script>
+</body>
+</html>
