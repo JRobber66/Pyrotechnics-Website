@@ -17,12 +17,13 @@
   <button onclick="login()">Login</button>
 
   <div id="chat"></div>
-  <input type="text" id="nameField" placeholder="Display name">
   <input type="text" id="message" placeholder="Message">
   <button onclick="sendMessage()">Send</button>
 
   <script>
     let ws;
+    let displayName = "";
+    let nameColor = "";
 
     async function login() {
       const username = document.getElementById('username').value.trim();
@@ -36,17 +37,42 @@
         });
 
         if (!res.ok) throw new Error("Login failed");
-
         const { token } = await res.json();
+
+        // Ask for display name once
+        while (!displayName) {
+          displayName = prompt("Enter your display name (cannot be changed):");
+          if (!displayName) alert("Display name is required.");
+        }
+
+        // Generate persistent color for this session
+        nameColor = generateColorFromToken(token);
         connectWebSocket(token);
+
         document.getElementById('chat').style.display = 'block';
+
       } catch (err) {
         alert("Invalid login.");
       }
     }
 
+    function generateColorFromToken(token) {
+      // Hash-based color generation
+      let hash = 0;
+      for (let i = 0; i < token.length; i++) {
+        hash = token.charCodeAt(i) + ((hash << 5) - hash);
+      }
+      const color = `hsl(${hash % 360}, 70%, 60%)`;
+      return color;
+    }
+
     function connectWebSocket(token) {
       ws = new WebSocket(`wss://backend-test-je8a.onrender.com?token=${token}`);
+
+      ws.onopen = () => {
+        // Notify everyone that this user joined
+        ws.send(`[SYSTEM] <i>${displayName} joined the chat</i>`);
+      };
 
       ws.onmessage = (event) => {
         const chat = document.getElementById('chat');
@@ -59,12 +85,12 @@
     }
 
     function sendMessage() {
-      const name = document.getElementById('nameField').value.trim();
       const msg = document.getElementById('message').value.trim();
-      if (!name || !msg) return;
+      if (!msg || !displayName || !ws || ws.readyState !== WebSocket.OPEN) return;
 
       const time = new Date().toLocaleTimeString();
-      ws.send(`<span class="name">${name}</span> [${time}]: ${msg}`);
+      const formatted = `<span class="name" style="color:${nameColor}">${displayName}</span> [${time}]: ${msg}`;
+      ws.send(formatted);
       document.getElementById('message').value = '';
     }
   </script>
