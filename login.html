@@ -1,0 +1,49 @@
+
+<!DOCTYPE html>
+<html>
+<head><title>Login</title></head>
+<body>
+  <h2>Login</h2>
+  <input placeholder="Username" id="user"><br>
+  <input placeholder="Password" id="pass" type="password"><br>
+  <button onclick="login()">Login</button>
+  <p><a href="register.html">Need an account? Register</a></p>
+
+  <script>
+    const backend = "https://backend-test-je8a.onrender.com";
+
+    function login() {
+      const username = document.getElementById('user').value;
+      const password = document.getElementById('pass').value;
+
+      if (username === "Administrator") {
+        fetch(backend + "/admin-login", {
+          method: "POST",
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ username, password })
+        }).then(r => r.json()).then(data => {
+          if (data.success) {
+            window.location.href = "admin.html";
+          } else {
+            alert(data.error);
+          }
+        });
+      } else {
+        fetch(backend + '/login', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ username, password })
+        }).then(r => r.json()).then(data => {
+          if (data.token) {
+            localStorage.setItem("token", data.token);
+            localStorage.setItem("displayName", data.displayName);
+            window.location.href = "chat.html";
+          } else {
+            alert(data.error);
+          }
+        });
+      }
+    }
+  </script>
+</body>
+</html>
