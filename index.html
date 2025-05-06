@@ -2,39 +2,69 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>WebSocket Chat</title>
+  <title>Secure WebSocket Chat</title>
   <style>
     body { font-family: sans-serif; padding: 20px; }
-    #chat { border: 1px solid #ccc; padding: 10px; height: 300px; overflow-y: auto; }
+    #chat { display: none; border: 1px solid #ccc; padding: 10px; height: 300px; overflow-y: auto; margin-top: 10px; }
     .msg { margin: 5px 0; }
     .name { font-weight: bold; }
   </style>
 </head>
 <body>
-  <h2>Chat Room</h2>
-  <input type="text" id="username" placeholder="Your name">
-  <input type="text" id="message" placeholder="Your message">
-  <button onclick="sendMessage()">Send</button>
+  <h2>Login to Chat</h2>
+  <input type="text" id="username" placeholder="Username">
+  <input type="password" id="password" placeholder="Password">
+  <button onclick="login()">Login</button>
 
   <div id="chat"></div>
+  <input type="text" id="nameField" placeholder="Display name">
+  <input type="text" id="message" placeholder="Message">
+  <button onclick="sendMessage()">Send</button>
 
   <script>
-    const ws = new WebSocket("wss://backend-test-je8a.onrender.com");
+    let ws;
 
-    ws.onmessage = (event) => {
-      const chat = document.getElementById('chat');
-      const entry = document.createElement('div');
-      entry.className = 'msg';
-      entry.innerHTML = event.data;
-      chat.appendChild(entry);
-      chat.scrollTop = chat.scrollHeight;
-    };
+    async function login() {
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
+
+      try {
+        const res = await fetch("https://backend-test-je8a.onrender.com/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password })
+        });
+
+        if (!res.ok) throw new Error("Login failed");
+
+        const { token } = await res.json();
+        connectWebSocket(token);
+        document.getElementById('chat').style.display = 'block';
+      } catch (err) {
+        alert("Invalid login.");
+      }
+    }
+
+    function connectWebSocket(token) {
+      ws = new WebSocket(`wss://backend-test-je8a.onrender.com?token=${token}`);
+
+      ws.onmessage = (event) => {
+        const chat = document.getElementById('chat');
+        const entry = document.createElement('div');
+        entry.className = 'msg';
+        entry.innerHTML = event.data;
+        chat.appendChild(entry);
+        chat.scrollTop = chat.scrollHeight;
+      };
+    }
 
     function sendMessage() {
-      const name = document.getElementById('username').value.trim();
+      const name = document.getElementById('nameField').value.trim();
       const msg = document.getElementById('message').value.trim();
       if (!name || !msg) return;
-      ws.send(`<span class="name">${name}:</span> ${msg}`);
+
+      const time = new Date().toLocaleTimeString();
+      ws.send(`<span class="name">${name}</span> [${time}]: ${msg}`);
       document.getElementById('message').value = '';
     }
   </script>
