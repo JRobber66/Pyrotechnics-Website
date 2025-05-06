@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Simple Chat</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    #chat { border: 1px solid #ccc; padding: 10px; height: 300px; overflow-y: auto; }
+    .msg { margin: 5px 0; }
+    .name { font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h2>Local Chat (Not Shared)</h2>
+  <input type="text" id="username" placeholder="Your name">
+  <input type="text" id="message" placeholder="Your message">
+  <button onclick="sendMessage()">Send</button>
+
+  <div id="chat"></div>
+
+  <script>
+    function sendMessage() {
+      const name = document.getElementById('username').value.trim();
+      const msg = document.getElementById('message').value.trim();
+      if (!name || !msg) return;
+
+      const chatBox = document.getElementById('chat');
+      const entry = document.createElement('div');
+      entry.className = 'msg';
+      entry.innerHTML = `<span class="name">${name}:</span> ${msg}`;
+      chatBox.appendChild(entry);
+      document.getElementById('message').value = '';
+
+      // Scroll to bottom
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+  </script>
+</body>
+</html>
