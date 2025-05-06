@@ -1,0 +1,30 @@
+
+<!DOCTYPE html>
+<html>
+<head><title>Admin</title></head>
+<body>
+  <h2>Admin Login</h2>
+  <input placeholder="Username" id="adminUser"><br>
+  <input placeholder="Password" id="adminPass" type="password"><br>
+  <button onclick="adminLogin()">Login</button>
+  <pre id="logs"></pre>
+  <script>
+    function adminLogin() {
+      fetch('/admin-login', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          username: document.getElementById('adminUser').value,
+          password: document.getElementById('adminPass').value
+        })
+      }).then(r => r.json()).then(data => {
+        if (data.success) {
+          fetch('/logs').then(r => r.text()).then(log => {
+            document.getElementById('logs').textContent = log;
+          });
+        } else alert(data.error);
+      });
+    }
+  </script>
+</body>
+</html>
