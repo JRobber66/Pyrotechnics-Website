@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -20,10 +19,11 @@
   </div>
   <script>
     let ws, token, displayName;
+    const backendURL = "https://backend-test-je8a.onrender.com";
     const ip = Math.random().toString(36).substring(7); // Simulated IP for demo
 
     function register() {
-      fetch('/register', {
+      fetch(backendURL + '/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -39,7 +39,7 @@
     }
 
     function login() {
-      fetch('/login', {
+      fetch(backendURL + '/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -57,7 +57,7 @@
     }
 
     function connect() {
-      ws = new WebSocket(location.origin.replace('http', 'ws'));
+      ws = new WebSocket(backendURL.replace("http", "ws"));
       document.getElementById('chat').style.display = 'block';
       ws.onmessage = (e) => {
         const box = document.getElementById('chatbox');
