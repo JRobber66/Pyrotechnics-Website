@@ -1,76 +1,38 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Chat Signup</title>
+  <title>Welcome to Chat</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      background-color: #f0f0f0;
+    }
+    h1 {
+      margin-bottom: 20px;
+    }
+    .btn {
+      padding: 10px 20px;
+      margin: 10px;
+      font-size: 18px;
+      cursor: pointer;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+    .btn:hover {
+      background-color: #0056b3;
+    }
+  </style>
 </head>
 <body>
-  <h2>Sign Up / Login</h2>
-  <div id="form">
-    <input placeholder="Username" id="user"><br>
-    <input placeholder="Password" id="pass" type="password"><br>
-    <input placeholder="Master Key" id="key"><br>
-    <button onclick="register()">Register</button>
-    <button onclick="login()">Login</button>
-  </div>
-  <div id="chat" style="display:none;">
-    <h3>Chat</h3>
-    <div id="chatbox" style="height:300px;overflow:auto;border:1px solid #ccc;"></div>
-    <input id="msg"><button onclick="send()">Send</button>
-  </div>
-  <script>
-    let ws, token, displayName;
-    const backendURL = "https://backend-test-je8a.onrender.com";
-    const ip = Math.random().toString(36).substring(7); // Simulated IP for demo
-
-    function register() {
-      fetch(backendURL + '/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          username: document.getElementById('user').value,
-          password: document.getElementById('pass').value,
-          masterKey: document.getElementById('key').value,
-          ip
-        })
-      }).then(r => r.json()).then(data => {
-        if (data.success) alert('Registered. Now log in.');
-        else alert(data.error);
-      });
-    }
-
-    function login() {
-      fetch(backendURL + '/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          username: document.getElementById('user').value,
-          password: document.getElementById('pass').value,
-          ip
-        })
-      }).then(r => r.json()).then(data => {
-        if (data.token) {
-          token = data.token;
-          displayName = data.displayName;
-          connect();
-        } else alert(data.error);
-      });
-    }
-
-    function connect() {
-      ws = new WebSocket(backendURL.replace("http", "ws"));
-      document.getElementById('chat').style.display = 'block';
-      ws.onmessage = (e) => {
-        const box = document.getElementById('chatbox');
-        box.innerHTML += `<div>${e.data}</div>`;
-        box.scrollTop = box.scrollHeight;
-      };
-    }
-
-    function send() {
-      const msg = document.getElementById('msg').value;
-      ws.send(`<b>${displayName}</b>: ${msg}`);
-      document.getElementById('msg').value = '';
-    }
-  </script>
+  <h1>Welcome to the Chat App</h1>
+  <button class="btn" onclick="location.href='login.html'">Login</button>
+  <button class="btn" onclick="location.href='register.html'">Register</button>
 </body>
 </html>
