@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Simple Chat</title>
+  <title>WebSocket Chat</title>
   <style>
     body { font-family: sans-serif; padding: 20px; }
     #chat { border: 1px solid #ccc; padding: 10px; height: 300px; overflow-y: auto; }
@@ -11,7 +11,7 @@
   </style>
 </head>
 <body>
-  <h2>Local Chat (Not Shared)</h2>
+  <h2>Chat Room</h2>
   <input type="text" id="username" placeholder="Your name">
   <input type="text" id="message" placeholder="Your message">
   <button onclick="sendMessage()">Send</button>
@@ -19,20 +19,23 @@
   <div id="chat"></div>
 
   <script>
+    const ws = new WebSocket("wss://backend-test-je8a.onrender.com");
+
+    ws.onmessage = (event) => {
+      const chat = document.getElementById('chat');
+      const entry = document.createElement('div');
+      entry.className = 'msg';
+      entry.innerHTML = event.data;
+      chat.appendChild(entry);
+      chat.scrollTop = chat.scrollHeight;
+    };
+
     function sendMessage() {
       const name = document.getElementById('username').value.trim();
       const msg = document.getElementById('message').value.trim();
       if (!name || !msg) return;
-
-      const chatBox = document.getElementById('chat');
-      const entry = document.createElement('div');
-      entry.className = 'msg';
-      entry.innerHTML = `<span class="name">${name}:</span> ${msg}`;
-      chatBox.appendChild(entry);
+      ws.send(`<span class="name">${name}:</span> ${msg}`);
       document.getElementById('message').value = '';
-
-      // Scroll to bottom
-      chatBox.scrollTop = chatBox.scrollHeight;
     }
   </script>
 </body>
