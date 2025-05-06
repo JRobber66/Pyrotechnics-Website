@@ -34,5 +34,15 @@
   <h1>Welcome to the Chat App</h1>
   <button class="btn" onclick="location.href='login.html'">Login</button>
   <button class="btn" onclick="location.href='register.html'">Register</button>
+
+  <script>
+    const token = localStorage.getItem("token");
+    const displayName = localStorage.getItem("displayName");
+
+    if (token && displayName) {
+      // Basic client-side check – no actual token validation
+      window.location.href = "chat.html";
+    }
+  </script>
 </body>
 </html>
