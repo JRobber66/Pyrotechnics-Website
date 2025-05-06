@@ -1,11 +1,11 @@
-
 <!DOCTYPE html>
 <html>
 <head><title>Chat</title></head>
 <body>
   <h2>Chat Room</h2>
   <div id="chatbox" style="height:300px; overflow:auto; border:1px solid #ccc;"></div>
-  <input id="msg"><button onclick="send()">Send</button>
+  <input id="msg" placeholder="Type your message...">
+  <button onclick="send()">Send</button>
 
   <script>
     const backend = "wss://backend-test-je8a.onrender.com";
@@ -26,12 +26,21 @@
     };
 
     ws.onopen = () => {
-      ws.send(`[SYSTEM] <i>${displayName} joined the chat</i>`);
+      const time = new Date().toLocaleTimeString();
+      ws.send(`[SYSTEM] <i>${displayName} joined the chat at ${time}</i>`);
     };
+
+    document.getElementById("msg").addEventListener("keypress", function (e) {
+      if (e.key === "Enter") {
+        send();
+      }
+    });
 
     function send() {
       const msg = document.getElementById('msg').value;
-      ws.send(`<b>${displayName}</b>: ${msg}`);
+      if (!msg.trim()) return;
+      const time = new Date().toLocaleTimeString();
+      ws.send(`<b>${displayName}</b> [${time}]: ${msg}`);
       document.getElementById('msg').value = '';
     }
   </script>
