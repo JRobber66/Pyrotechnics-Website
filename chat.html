@@ -1,60 +1,13 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Chat Room</title>
+  <title>Chat</title>
   <style>
-    body {
-      font-family: sans-serif;
-      padding: 20px;
-      margin: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    #chatbox {
-      width: 100%;
-      max-width: 600px;
-      height: 300px;
-      overflow-y: auto;
-      border: 1px solid #ccc;
-      padding: 10px;
-      margin-bottom: 10px;
-    }
-    #msg {
-      width: 80%;
-      max-width: 500px;
-      padding: 12px;
-      font-size: 16px;
-      margin-right: 5px;
-    }
-    #user-list {
-      margin-top: 15px;
-      font-size: 14px;
-      color: #444;
-    }
-    .delete-btn {
-      margin-top: 10px;
-      background: #dc3545;
-      color: white;
-      border: none;
-      padding: 6px 12px;
-      cursor: pointer;
-      border-radius: 4px;
-    }
-    .msg-line {
-      position: relative;
-      padding: 2px 0;
-    }
-    .msg-line[data-own="true"].delete-mode:hover {
-      background-color: #ffeeee;
-      cursor: pointer;
-    }
-    @media (max-width: 600px) {
-      #msg {
-        width: 100%;
-        font-size: 18px;
-      }
-    }
+    body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+    #chatbox { width: 100%; max-width: 600px; height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; }
+    #msg { width: 80%; max-width: 500px; padding: 12px; font-size: 16px; margin-right: 5px; }
+    .msg-line { padding: 2px 0; }
+    .delete-btn { margin-top: 10px; background: #dc3545; color: white; border: none; padding: 6px 12px; cursor: pointer; border-radius: 4px; }
   </style>
 </head>
 <body>
@@ -65,11 +18,10 @@
     <button onclick="send()">Send</button>
     <button class="delete-btn" onclick="toggleDeleteMode()">Delete Mode</button>
   </div>
-  <div id="user-list"><strong>Recent Users (36hr):</strong> <span id="users"></span></div>
 
   <script>
     const backend = "wss://backend-test-je8a.onrender.com";
-    const webhookURL = "https://discord.com/api/webhooks/1369437314257780817/u3mVxV-b9Dl-952xMElyOz0dbLP1fX-UFEs9jKHVwR5r-SN4nNkKUIzHSWQHlzfXRYpJ";
+    const httpBackend = "https://backend-test-je8a.onrender.com";
     const token = localStorage.getItem("token");
     const displayName = localStorage.getItem("displayName");
 
@@ -79,64 +31,30 @@
     }
 
     const ws = new WebSocket(backend);
-    const connectedUsers = new Map();
-    const messageHistory = [];
     let deleteMode = false;
 
-    function renderUsers() {
-      const now = Date.now();
-      const activeUsers = Array.from(connectedUsers.entries())
-        .filter(([_, ts]) => now - ts <= 36 * 60 * 60 * 1000)
-        .map(([name]) => name);
-      document.getElementById("users").textContent = activeUsers.join(", ");
-    }
-
-    ws.onopen = () => {
-      const time = new Date().toLocaleTimeString();
-      const joinMsg = `[SYSTEM] <i>${displayName} joined the chat at ${time}</i>`;
-      ws.send(joinMsg);
-      connectedUsers.set(displayName, Date.now());
-      renderUsers();
-    };
-
     ws.onmessage = (e) => {
-      const raw = e.data;
+      const data = JSON.parse(e.data);
       const chat = document.getElementById("chatbox");
 
-      const match = raw.match(/^<b>(.+?)<\/b>/);
-      if (match) {
-        connectedUsers.set(match[1], Date.now());
-        renderUsers();
+      if (data.type === "message") {
+        const div = document.createElement("div");
+        div.className = "msg-line";
+        div.dataset.id = data.id;
+        div.dataset.own = data.html.includes(`<b>${displayName}</b>`);
+        div.innerHTML = data.html;
+        if (div.dataset.own === "true") div.onclick = () => deleteMode && deleteMessage(div);
+        chat.appendChild(div);
+        chat.scrollTop = chat.scrollHeight;
       }
 
-      const entry = document.createElement("div");
-      entry.className = "msg-line";
-      entry.innerHTML = raw;
-
-      const msgId = messageHistory.length;
-      const isOwn = raw.includes(`<b>${displayName}</b>`);
-      entry.dataset.id = msgId;
-      entry.dataset.own = isOwn;
-
-      if (isOwn) {
-        entry.classList.add("delete-mode");
-      }
-
-      chat.appendChild(entry);
-      chat.scrollTop = chat.scrollHeight;
-
-      messageHistory.push({ html: raw, deleted: false, own: isOwn });
-
-      if (!raw.includes("[SYSTEM]")) {
-        fetch(webhookURL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ content: raw })
-        });
+      if (data.type === "delete") {
+        const target = document.querySelector(`.msg-line[data-id='${data.id}']`);
+        if (target) target.style.display = "none";
       }
     };
 
-    document.getElementById("msg").addEventListener("keypress", function (e) {
+    document.getElementById("msg").addEventListener("keypress", e => {
       if (e.key === "Enter") send();
     });
 
@@ -145,48 +63,25 @@
       const msg = input.value.trim();
       if (!msg) return;
       const time = new Date().toLocaleTimeString();
-      const formatted = `<b>${displayName}</b> [${time}]: ${msg}`;
-      ws.send(formatted);
+      ws.send(`<b>${displayName}</b> [${time}]: ${msg}`);
       input.value = '';
     }
 
     function toggleDeleteMode() {
       deleteMode = !deleteMode;
-      const lines = document.querySelectorAll(".msg-line[data-own='true']");
-      lines.forEach(line => {
+      document.querySelectorAll(".msg-line[data-own='true']").forEach(line => {
         line.style.backgroundColor = deleteMode ? "#ffeeee" : "";
-        line.onclick = deleteMode ? () => deleteMessage(line) : null;
       });
     }
 
     function deleteMessage(el) {
       const id = parseInt(el.dataset.id);
-      if (!messageHistory[id] || !messageHistory[id].own) return;
-      messageHistory[id].deleted = true;
-      el.style.display = "none";
+      fetch(httpBackend + "/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, id })
+      });
     }
-
-    function hourlyDump() {
-      const now = new Date();
-      const msToNextHour = ((60 - now.getMinutes()) * 60 - now.getSeconds()) * 1000;
-      setTimeout(() => {
-        const time = new Date().toLocaleTimeString();
-        const dump = messageHistory.map(m =>
-          m.deleted ? "(deleted by user)" : m.html
-        ).join("\n");
-        const payload = {
-          content: `📤 **Chat log (${time})**\n\`\`\`\n${dump}\n\`\`\``
-        };
-        fetch(webhookURL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
-        hourlyDump();
-      }, msToNextHour);
-    }
-
-    hourlyDump();
   </script>
 </body>
 </html>
