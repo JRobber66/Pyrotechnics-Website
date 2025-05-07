@@ -5,11 +5,18 @@
   <style>
     body {
       font-family: sans-serif;
-      padding: 20px;
       margin: 0;
+      padding: 20px;
       display: flex;
       flex-direction: column;
       align-items: center;
+      background: white;
+      color: black;
+      transition: background 0.2s, color 0.2s;
+    }
+    body.dark {
+      background: #121212;
+      color: #e0e0e0;
     }
     #chatbox {
       width: 100%;
@@ -19,13 +26,15 @@
       border: 1px solid #ccc;
       padding: 10px;
       margin-bottom: 10px;
+      background: inherit;
+      color: inherit;
     }
-    #msg {
+    #msg, #search {
       width: 80%;
       max-width: 500px;
       padding: 12px;
       font-size: 16px;
-      margin-right: 5px;
+      margin: 5px 0;
     }
     .msg-line {
       padding: 2px 0;
@@ -38,8 +47,12 @@
       font-style: italic;
       color: #888;
     }
+    #typing-indicator {
+      font-size: 14px;
+      margin-bottom: 5px;
+      color: #666;
+    }
     #deleteToggle {
-      margin-top: 10px;
       border: none;
       padding: 6px 12px;
       cursor: pointer;
@@ -53,15 +66,29 @@
       background: #007bff;
       color: white;
     }
+    #darkToggle {
+      margin-top: 5px;
+      padding: 6px 10px;
+      background: #333;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 4px;
+    }
   </style>
 </head>
 <body>
   <h2>Chat Room</h2>
+
+  <input id="search" placeholder="Search messages...">
   <div id="chatbox"></div>
+  <div id="typing-indicator"></div>
+
+  <input id="msg" placeholder="Type your message...">
   <div>
-    <input id="msg" placeholder="Type your message...">
     <button onclick="send()">Send</button>
     <button id="deleteToggle" class="inactive" onclick="toggleDeleteMode()">Delete Mode</button>
+    <button id="darkToggle" onclick="toggleDarkMode()">Toggle Dark Mode</button>
   </div>
 
   <script>
@@ -83,10 +110,13 @@
 
     const ws = new WebSocket(backend);
     let deleteMode = false;
+    let typingTimeout;
+
+    const chatbox = document.getElementById("chatbox");
+    const typingIndicator = document.getElementById("typing-indicator");
 
     ws.onmessage = (e) => {
       const data = JSON.parse(e.data);
-      const chat = document.getElementById("chatbox");
 
       if (data.type === "message") {
         const div = document.createElement("div");
@@ -94,15 +124,14 @@
         div.dataset.id = data.id;
         div.dataset.own = data.html.includes(`<b>${displayName}</b>`);
         div.innerHTML = data.html;
-
         if (div.dataset.own === "true") {
           div.addEventListener("click", () => {
             if (deleteMode) deleteMessage(div);
           });
         }
-
-        chat.appendChild(div);
-        chat.scrollTop = chat.scrollHeight;
+        chatbox.appendChild(div);
+        applySearchFilter();
+        chatbox.scrollTop = chatbox.scrollHeight;
       }
 
       if (data.type === "delete") {
@@ -111,37 +140,46 @@
           target.innerHTML = `<span class="deleted-msg">[Deleted Message]</span>`;
         }
       }
+
+      if (data.type === "clear") {
+        chatbox.innerHTML = "";
+      }
+
+      if (data.type === "typing") {
+        typingIndicator.textContent = `${data.user} is typing...`;
+        clearTimeout(typingTimeout);
+        typingTimeout = setTimeout(() => typingIndicator.textContent = "", 2000);
+      }
     };
 
     document.getElementById("msg").addEventListener("keypress", function (e) {
       if (e.key === "Enter") send();
+      else ws.send(JSON.stringify({ type: "typing", user: displayName }));
     });
 
     function send() {
       const input = document.getElementById("msg");
       const msg = input.value.trim();
       if (!msg) return;
-      const time = new Date().toLocaleTimeString();
-      ws.send(`<b>${displayName}</b> [${time}]: ${msg}`);
+
+      if (msg.startsWith("/clear")) {
+        ws.send(msg);
+      } else {
+        const time = new Date().toLocaleTimeString();
+        ws.send(`<b>${displayName}</b> [${time}]: ${msg}`);
+      }
+
       input.value = '';
     }
 
     function toggleDeleteMode() {
       deleteMode = !deleteMode;
       const btn = document.getElementById("deleteToggle");
-      const lines = document.querySelectorAll(".msg-line[data-own='true']");
-
-      lines.forEach(line => {
+      document.querySelectorAll(".msg-line[data-own='true']").forEach(line => {
         line.classList.toggle("deletable", deleteMode);
       });
-
-      if (deleteMode) {
-        btn.className = "active";
-        btn.textContent = "Stop Deleting";
-      } else {
-        btn.className = "inactive";
-        btn.textContent = "Delete Mode";
-      }
+      btn.className = deleteMode ? "active" : "inactive";
+      btn.textContent = deleteMode ? "Stop Deleting" : "Delete Mode";
     }
 
     function deleteMessage(el) {
@@ -154,6 +192,19 @@
         if (!res.ok) alert("Failed to delete message");
       });
     }
+
+    function toggleDarkMode() {
+      document.body.classList.toggle("dark");
+    }
+
+    function applySearchFilter() {
+      const term = document.getElementById("search").value.toLowerCase();
+      document.querySelectorAll(".msg-line").forEach(line => {
+        line.style.display = line.textContent.toLowerCase().includes(term) ? "" : "none";
+      });
+    }
+
+    document.getElementById("search").addEventListener("input", applySearchFilter);
   </script>
 </body>
 </html>
