@@ -119,119 +119,113 @@
   </div>
 
   <script>
-    const WS_URL = "wss://backend-test-je8a.onrender.com";
+    const WS_URL   = "wss://backend-test-je8a.onrender.com";
     const HTTP_URL = "https://backend-test-je8a.onrender.com";
-    const token = localStorage.getItem("token");
-    const displayName = localStorage.getItem("displayName");
+    const token        = localStorage.getItem("token");
+    const displayName  = localStorage.getItem("displayName");
     if (!token || !displayName) {
       alert("You must log in first.");
       location.href = "login.html";
     }
 
-    // Show admin dashboard button
+    // Show admin button if Admin
     if (displayName === "Administrator") {
-      const adminBtn = document.getElementById("adminToggle");
-      adminBtn.style.display = "inline-block";
-      adminBtn.addEventListener("click", () => {
-        location.href = "admin.html";
-      });
+      const btn = document.getElementById("adminToggle");
+      btn.style.display = "inline-block";
+      btn.addEventListener("click", () => location.href = "admin.html");
     }
 
-    // Rebind token after reload
+    // Bind token & check ban
     fetch(HTTP_URL + "/bind-token", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ token, username: displayName, displayName })
+    })
+    .then(r => r.json())
+    .then(data => {
+      // If backend returned banned flag, handle it
+      if (data.banned) {
+        alert("You are banned. Chat disabled.");
+        disableChat();
+      }
     });
 
     const ws = new WebSocket(WS_URL);
-    let deleteMode = false;
-    let typingTimeout;
+    let deleteMode = false, typingTimeout;
+    const chatbox = document.getElementById("chatbox"),
+          typingIndicator = document.getElementById("typing-indicator"),
+          searchInput = document.getElementById("search");
 
-    const chatbox = document.getElementById("chatbox");
-    const typingIndicator = document.getElementById("typing-indicator");
-    const searchInput = document.getElementById("search");
-
-    ws.onmessage = (e) => {
-      const data = JSON.parse(e.data);
-
-      if (data.type === "message") {
-        const div = document.createElement("div");
-        div.className = "msg-line";
-        div.dataset.id = data.id;
-        div.dataset.own = data.html.includes(`<b>${displayName}</b>`);
-        div.innerHTML = data.html;
-        if (div.dataset.own === "true") {
-          div.addEventListener("click", () => {
-            if (deleteMode) deleteMessage(div);
-          });
-        }
-        chatbox.appendChild(div);
-        applySearchFilter();
-        chatbox.scrollTop = chatbox.scrollHeight;
-      }
-      if (data.type === "delete") {
-        const tgt = document.querySelector(`.msg-line[data-id='${data.id}']`);
-        if (tgt) tgt.innerHTML = `<span class="deleted-msg">[Deleted Message]</span>`;
-      }
-      if (data.type === "clear") {
-        chatbox.innerHTML = "";
-      }
-      if (data.type === "system") {
-        const div = document.createElement("div");
-        div.className = "system-msg";
-        div.textContent = data.content;
-        chatbox.appendChild(div);
-        chatbox.scrollTop = chatbox.scrollHeight;
-      }
-      if (data.type === "typing") {
-        typingIndicator.textContent = `${data.user} is typing...`;
-        clearTimeout(typingTimeout);
-        typingTimeout = setTimeout(() => {
-          typingIndicator.textContent = "";
-        }, 2000);
-      }
+    ws.onmessage = e => {
+      const d = JSON.parse(e.data);
+      if (d.type === "message")      addMessage(d.id, d.html, d.html.includes(`<b>${displayName}</b>`));
+      if (d.type === "delete")       markDeleted(d.id);
+      if (d.type === "clear")        chatbox.innerHTML = "";
+      if (d.type === "system")       addSystem(d.content);
+      if (d.type === "typing")       showTyping(d.user);
     };
 
     searchInput.addEventListener("input", applySearchFilter);
-
-    document.getElementById("msg").addEventListener("keypress", (e) => {
+    document.getElementById("msg").addEventListener("keypress", e => {
       if (e.key === "Enter") send();
       else ws.send(JSON.stringify({ type: "typing", user: displayName }));
     });
 
+    function addMessage(id, html, isOwn) {
+      const div = document.createElement("div");
+      div.className = "msg-line";
+      div.dataset.id = id;
+      div.dataset.own = isOwn;
+      div.innerHTML = html;
+      if (isOwn) div.addEventListener("click", () => deleteMode && deleteMessage(div));
+      chatbox.appendChild(div);
+      applySearchFilter();
+      chatbox.scrollTop = chatbox.scrollHeight;
+    }
+    function markDeleted(id) {
+      const el = document.querySelector(`.msg-line[data-id='${id}']`);
+      if (el) el.innerHTML = `<span class="deleted-msg">[Deleted Message]</span>`;
+    }
+    function addSystem(txt) {
+      const div = document.createElement("div");
+      div.className = "system-msg";
+      div.textContent = txt;
+      chatbox.appendChild(div);
+      chatbox.scrollTop = chatbox.scrollHeight;
+    }
+    function showTyping(user) {
+      typingIndicator.textContent = `${user} is typing...`;
+      clearTimeout(typingTimeout);
+      typingTimeout = setTimeout(() => typingIndicator.textContent = "", 2000);
+    }
+
     function send() {
-      const input = document.getElementById("msg");
-      const txt = input.value.trim();
+      const txt = document.getElementById("msg").value.trim();
       if (!txt) return;
-      if (txt === "/clear-accounts") {
-        ws.send(txt);
-      } else {
+      if (txt === "/clear-accounts") ws.send(txt);
+      else {
         const time = new Date().toLocaleTimeString();
         ws.send(`<b>${displayName}</b> [${time}]: ${txt}`);
       }
-      input.value = "";
+      document.getElementById("msg").value = "";
     }
 
     function toggleDeleteMode() {
       deleteMode = !deleteMode;
+      document.querySelectorAll(".msg-line[data-own='true']").forEach(l =>
+        l.classList.toggle("deletable", deleteMode)
+      );
       const btn = document.getElementById("deleteToggle");
-      document.querySelectorAll(".msg-line[data-own='true']").forEach(line => {
-        line.classList.toggle("deletable", deleteMode);
-      });
       btn.className = deleteMode ? "active" : "inactive";
       btn.textContent = deleteMode ? "Stop Deleting" : "Delete Mode";
     }
 
     function deleteMessage(el) {
-      const id = parseInt(el.dataset.id);
       fetch(HTTP_URL + "/delete", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token, id })
-      }).then(r => {
-        if (!r.ok) alert("Failed to delete");
-      });
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ token, id: parseInt(el.dataset.id) })
+      }).then(r => { if (!r.ok) alert("Failed to delete"); });
     }
 
     function toggleDarkMode() {
@@ -243,6 +237,13 @@
       document.querySelectorAll(".msg-line, .system-msg").forEach(el => {
         el.style.display = el.textContent.toLowerCase().includes(term) ? "" : "none";
       });
+    }
+
+    function disableChat() {
+      document.getElementById("msg").disabled = true;
+      document.getElementById("sendBtn").disabled = true;
+      document.getElementById("deleteToggle").disabled = true;
+      document.getElementById("darkToggle").disabled = true;
     }
   </script>
 </body>
