@@ -31,6 +31,7 @@
 </head>
 <body>
   <h1>Admin Dashboard</h1>
+
   <div class="section">
     <h2>Active Users</h2>
     <table id="userTable">
@@ -55,14 +56,17 @@
   <script>
     const token = localStorage.getItem("token");
     const displayName = localStorage.getItem("displayName");
+    const httpBackend = "https://backend-test-je8a.onrender.com";
 
+    // Protect dashboard
     if (!token || displayName !== "Administrator") {
       alert("Access denied.");
       location.href = "login.html";
     }
 
+    // Fetch users/bans for table
     async function fetchDashboard() {
-      const res = await fetch("https://backend-test-je8a.onrender.com/admin-state", {
+      const res = await fetch(httpBackend + "/admin-state", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token })
@@ -99,18 +103,32 @@
       });
     }
 
+    // Send a slash-command over WebSocket and wait until sent
+    function sendCommand(cmd) {
+      return new Promise((resolve, reject) => {
+        const ws = new WebSocket("wss://backend-test-je8a.onrender.com");
+        ws.onopen = () => {
+          ws.send(cmd);
+          ws.close();
+          resolve();
+        };
+        ws.onerror = err => reject(err);
+      });
+    }
+
+    // Ban and unban actions
     async function ban(name) {
       await sendCommand(`/ban ${name}`);
-      fetchDashboard();
+      await fetchDashboard();
     }
-
     async function unban(name) {
       await sendCommand(`/unban ${name}`);
-      fetchDashboard();
+      await fetchDashboard();
     }
 
+    // Refresh the message log display
     async function refreshLog() {
-      const res = await fetch("https://backend-test-je8a.onrender.com/admin-log", {
+      const res = await fetch(httpBackend + "/admin-log", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token })
@@ -119,11 +137,7 @@
       document.getElementById("logBox").textContent = data.log || "(no log)";
     }
 
-    async function sendCommand(cmd) {
-      const ws = new WebSocket("wss://backend-test-je8a.onrender.com");
-      ws.onopen = () => ws.send(cmd);
-    }
-
+    // Initial load
     fetchDashboard();
   </script>
 </body>
