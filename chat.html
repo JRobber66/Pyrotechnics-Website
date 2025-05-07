@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>ChatApp • Chat</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="sidebar">
+    <h2>Channels</h2>
+    <ul id="channels">
+      <li data-channel="general" class="active"># general</li>
+      <li data-channel="random"># random</li>
+      <li data-channel="tech"># tech</li>
+    </ul>
+    <button id="new-channel" class="btn-small">+ New</button>
+    <h2>Online</h2>
+    <ul id="users"></ul>
+    <button id="toggle-dark" class="btn-small">Dark Mode</button>
+    <button id="logout" class="btn-small">Logout</button>
+  </div>
+
+  <div class="main">
+    <header>
+      <h1 id="current-channel"># general</h1>
+      <span id="typing-indicator"></span>
+    </header>
+    <div id="message-container"></div>
+    <input id="search" placeholder="Search messages…" />
+    <textarea id="msg-input" placeholder="Type a message…"></textarea>
+    <button id="send" class="btn">Send</button>
+  </div>
+
+  <script src="https://cdn.socket.io/4.4.1/socket.io.min.js"></script>
+  <script>
+    const BACKEND = 'https://YOUR_BACKEND_URL';
+    let socket, currentChannel = 'general';
+
+    // check auth
+    (async () => {
+      const me = await fetch(BACKEND + '/api/user', { credentials:'include' });
+      if (!me.ok) return location='login.html';
+      initSocket();
+      loadChannel('general');
+    })();
+
+    // initialize socket
+    function initSocket() {
+      socket = io(BACKEND, { withCredentials:true, auth:{ token: document.cookie.split('token=')[1] } });
+      socket.on('joined', ch => {
+        currentChannel = ch;
+        document.getElementById('current-channel').textContent = '# ' + ch;
+        fetchMessages(ch);
+      });
+      socket.on('message', appendMessage);
+      socket.on('typing', user => {
+        const el = document.getElementById('typing-indicator');
+        el.textContent = user + ' is typing…';
+        setTimeout(()=>el.textContent='',1500);
+      });
+    }
+
+    // channel switching
+    document.querySelectorAll('#channels li').forEach(li => {
+      li.onclick = () => loadChannel(li.dataset.channel);
+    });
+
+    async function loadChannel(ch) {
+      document.querySelectorAll('#channels li').forEach(li=>li.classList.remove('active'));
+      document.querySelector(`#channels li[data-channel="${ch}"]`).classList.add('active');
+      socket.emit('join', ch);
+    }
+
+    // fetch & render history
+    async function fetchMessages(ch) {
+      const res = await fetch(`${BACKEND}/api/messages/${ch}`, { credentials:'include' });
+      const msgs = await res.json();
+      const container = document.getElementById('message-container');
+      container.innerHTML = '';
+      msgs.forEach(appendMessage);
+    }
+
+    function appendMessage({author,content,timestamp}) {
+      const el = document.createElement('div');
+      el.className = 'message';
+      el.innerHTML = `<strong>${author}</strong> <span>${new Date(timestamp).toLocaleTimeString()}</span><p>${content}</p>`;
+      document.getElementById('message-container').append(el);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    // send & typing
+    document.getElementById('msg-input').addEventListener('input', () => {
+      socket.emit('typing', currentChannel);
+    });
+    document.getElementById('send').onclick = () => {
+      const txt = document.getElementById('msg-input');
+      if (!txt.value.trim()) return;
+      socket.emit('message', {channel:currentChannel,content:txt.value});
+      txt.value = '';
+    };
+
+    // search
+    document.getElementById('search').oninput = e => {
+      const term = e.target.value.toLowerCase();
+      document.querySelectorAll('.message').forEach(msg => {
+        msg.style.display = msg.textContent.toLowerCase().includes(term) ? '' : 'none';
+      });
+    };
+
+    // dark mode
+    document.getElementById('toggle-dark').onclick = () => {
+      document.body.classList.toggle('dark');
+      localStorage.dark = document.body.classList.contains('dark');
+    };
+    if (localStorage.dark === 'true') document.body.classList.add('dark');
+
+    // logout
+    document.getElementById('logout').onclick = async () => {
+      await fetch(BACKEND+'/api/logout',{method:'POST',credentials:'include'});
+      location='login.html';
+    };
+  </script>
+</body>
+</html>
