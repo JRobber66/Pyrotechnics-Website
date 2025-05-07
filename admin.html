@@ -21,8 +21,8 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-bottom: 20px;
       background: white;
+      margin-bottom: 20px;
     }
     th, td {
       padding: 8px;
@@ -65,7 +65,7 @@
 
   <script>
     const HTTP_URL = "https://backend-test-je8a.onrender.com";
-    const token = localStorage.getItem("token");
+    const token     = localStorage.getItem("token");
     const displayName = localStorage.getItem("displayName");
     if (!token || displayName !== "Administrator") {
       alert("Access denied.");
@@ -75,7 +75,7 @@
     async function fetchDashboard() {
       const res = await fetch(HTTP_URL + "/admin-state", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers:{ "Content-Type":"application/json" },
         body: JSON.stringify({ token })
       });
       const data = await res.json();
@@ -134,14 +134,13 @@
     async function refreshLog() {
       const res = await fetch(HTTP_URL + "/admin-log", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers:{ "Content-Type":"application/json" },
         body: JSON.stringify({ token })
       });
       const data = await res.json();
       document.getElementById("logBox").textContent = data.log || "(no log)";
     }
 
-    // Initial load
     fetchDashboard();
     refreshLog();
   </script>
