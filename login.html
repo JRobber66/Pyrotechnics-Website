@@ -1,7 +1,8 @@
-
 <!DOCTYPE html>
 <html>
-<head><title>Login</title></head>
+<head>
+  <title>Login</title>
+</head>
 <body>
   <h2>Login</h2>
   <input placeholder="Username" id="user"><br>
@@ -12,36 +13,40 @@
   <script>
     const backend = "https://backend-test-je8a.onrender.com";
 
-    function login() {
-      const username = document.getElementById('user').value;
-      const password = document.getElementById('pass').value;
+    async function login() {
+      const username = document.getElementById('user').value.trim();
+      const password = document.getElementById('pass').value.trim();
 
       if (username === "Administrator") {
-        fetch(backend + "/admin-login", {
+        // Admin login flow
+        const res = await fetch(backend + "/admin-login", {
           method: "POST",
-          headers: {'Content-Type': 'application/json'},
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ username, password })
-        }).then(r => r.json()).then(data => {
-          if (data.success) {
-            window.location.href = "admin.html";
-          } else {
-            alert(data.error);
-          }
         });
+        const data = await res.json();
+        if (data.success) {
+          localStorage.setItem("token", data.token);
+          localStorage.setItem("displayName", data.displayName);
+          window.location.href = "admin.html";
+        } else {
+          alert(data.error || "Login failed");
+        }
       } else {
-        fetch(backend + '/login', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
+        // Regular user login
+        const res = await fetch(backend + "/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ username, password })
-        }).then(r => r.json()).then(data => {
-          if (data.token) {
-            localStorage.setItem("token", data.token);
-            localStorage.setItem("displayName", data.displayName);
-            window.location.href = "chat.html";
-          } else {
-            alert(data.error);
-          }
         });
+        const data = await res.json();
+        if (data.token) {
+          localStorage.setItem("token", data.token);
+          localStorage.setItem("displayName", data.displayName);
+          window.location.href = "chat.html";
+        } else {
+          alert(data.error || "Login failed");
+        }
       }
     }
   </script>
