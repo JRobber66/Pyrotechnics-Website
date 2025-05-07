@@ -1,33 +1,35 @@
-
 <!DOCTYPE html>
 <html>
-<head><title>Register</title></head>
+<head>
+  <title>Register</title>
+</head>
 <body>
   <h2>Register</h2>
-  <input placeholder="Username" id="user"><br>
-  <input placeholder="Password" id="pass" type="password"><br>
-  <input placeholder="Master Key" id="key"><br>
-  <button onclick="register()">Register</button>
-  <p><a href="login.html">Already have an account? Login</a></p>
-
+  <form onsubmit="register(event)">
+    <input id="username" placeholder="Username"><br>
+    <input id="password" placeholder="Password" type="password"><br>
+    <input id="displayName" placeholder="Display Name"><br>
+    <input id="key" placeholder="Master Key"><br>
+    <button type="submit">Register</button>
+  </form>
   <script>
-    const backend = "https://backend-test-je8a.onrender.com";
-
-    function register() {
-      fetch(backend + '/register', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
+    function register(e) {
+      e.preventDefault();
+      fetch("https://backend-test-je8a.onrender.com/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          username: document.getElementById('user').value,
-          password: document.getElementById('pass').value,
-          masterKey: document.getElementById('key').value
+          username: username.value,
+          password: password.value,
+          displayName: displayName.value,
+          masterKey: key.value
         })
-      }).then(r => r.json()).then(data => {
+      }).then(res => res.json()).then(data => {
         if (data.success) {
-          alert("Registered! Please login.");
-          window.location.href = "login.html";
+          alert("Registered!");
+          window.location = "login.html";
         } else {
-          alert(data.error);
+          alert(data.error || "Registration failed");
         }
       });
     }
