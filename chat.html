@@ -18,6 +18,23 @@
       background: #121212;
       color: #e0e0e0;
     }
+    #adminToggle {
+      display: none;
+      margin-bottom: 10px;
+      padding: 6px 12px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    #search {
+      width: 80%;
+      max-width: 500px;
+      padding: 10px;
+      margin-bottom: 10px;
+      font-size: 16px;
+    }
     #chatbox {
       width: 100%;
       max-width: 600px;
@@ -25,95 +42,115 @@
       overflow-y: auto;
       border: 1px solid #ccc;
       padding: 10px;
-      margin-bottom: 10px;
       background: inherit;
       color: inherit;
-    }
-    #msg, #search {
-      width: 80%;
-      max-width: 500px;
-      padding: 12px;
-      font-size: 16px;
-      margin: 5px 0;
+      margin-bottom: 5px;
     }
     .msg-line {
       padding: 2px 0;
     }
     .deletable {
       background-color: #ffeeee;
+      border-left: 4px solid #dc3545;
       cursor: pointer;
+    }
+    body.dark .deletable {
+      background-color: #333333;
+      border-left: 4px solid #ff5555;
     }
     .deleted-msg {
       font-style: italic;
       color: #888;
     }
+    .system-msg {
+      font-style: italic;
+      color: #666;
+      margin: 4px 0;
+    }
     #typing-indicator {
       font-size: 14px;
-      margin-bottom: 5px;
       color: #666;
+      height: 18px;
+      margin-bottom: 5px;
     }
-    #deleteToggle {
+    #msg {
+      width: 80%;
+      max-width: 500px;
+      padding: 12px;
+      font-size: 16px;
+      margin-bottom: 10px;
+    }
+    button {
+      padding: 8px 14px;
+      margin: 0 4px 10px 0;
       border: none;
-      padding: 6px 12px;
-      cursor: pointer;
       border-radius: 4px;
-    }
-    #deleteToggle.active {
-      background: #dc3545;
-      color: white;
+      cursor: pointer;
     }
     #deleteToggle.inactive {
       background: #007bff;
       color: white;
     }
+    #deleteToggle.active {
+      background: #dc3545;
+      color: white;
+    }
     #darkToggle {
-      margin-top: 5px;
-      padding: 6px 10px;
       background: #333;
       color: white;
-      border: none;
-      cursor: pointer;
-      border-radius: 4px;
+    }
+    #sendBtn {
+      background: #28a745;
+      color: white;
     }
   </style>
 </head>
 <body>
+  <button id="adminToggle">Admin Dashboard</button>
   <h2>Chat Room</h2>
-
   <input id="search" placeholder="Search messages...">
   <div id="chatbox"></div>
   <div id="typing-indicator"></div>
-
   <input id="msg" placeholder="Type your message...">
   <div>
-    <button onclick="send()">Send</button>
+    <button id="sendBtn" onclick="send()">Send</button>
     <button id="deleteToggle" class="inactive" onclick="toggleDeleteMode()">Delete Mode</button>
     <button id="darkToggle" onclick="toggleDarkMode()">Toggle Dark Mode</button>
   </div>
 
   <script>
-    const backend = "wss://backend-test-je8a.onrender.com";
-    const httpBackend = "https://backend-test-je8a.onrender.com";
+    const WS_URL = "wss://backend-test-je8a.onrender.com";
+    const HTTP_URL = "https://backend-test-je8a.onrender.com";
     const token = localStorage.getItem("token");
     const displayName = localStorage.getItem("displayName");
-
     if (!token || !displayName) {
       alert("You must log in first.");
-      window.location.href = "login.html";
+      location.href = "login.html";
     }
 
-    fetch(httpBackend + "/bind-token", {
+    // Show admin dashboard button
+    if (displayName === "Administrator") {
+      const adminBtn = document.getElementById("adminToggle");
+      adminBtn.style.display = "inline-block";
+      adminBtn.addEventListener("click", () => {
+        location.href = "admin.html";
+      });
+    }
+
+    // Rebind token after reload
+    fetch(HTTP_URL + "/bind-token", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ token, username: displayName })
+      body: JSON.stringify({ token, username: displayName, displayName })
     });
 
-    const ws = new WebSocket(backend);
+    const ws = new WebSocket(WS_URL);
     let deleteMode = false;
     let typingTimeout;
 
     const chatbox = document.getElementById("chatbox");
     const typingIndicator = document.getElementById("typing-indicator");
+    const searchInput = document.getElementById("search");
 
     ws.onmessage = (e) => {
       const data = JSON.parse(e.data);
@@ -133,43 +170,47 @@
         applySearchFilter();
         chatbox.scrollTop = chatbox.scrollHeight;
       }
-
       if (data.type === "delete") {
-        const target = document.querySelector(`.msg-line[data-id='${data.id}']`);
-        if (target) {
-          target.innerHTML = `<span class="deleted-msg">[Deleted Message]</span>`;
-        }
+        const tgt = document.querySelector(`.msg-line[data-id='${data.id}']`);
+        if (tgt) tgt.innerHTML = `<span class="deleted-msg">[Deleted Message]</span>`;
       }
-
       if (data.type === "clear") {
         chatbox.innerHTML = "";
       }
-
+      if (data.type === "system") {
+        const div = document.createElement("div");
+        div.className = "system-msg";
+        div.textContent = data.content;
+        chatbox.appendChild(div);
+        chatbox.scrollTop = chatbox.scrollHeight;
+      }
       if (data.type === "typing") {
         typingIndicator.textContent = `${data.user} is typing...`;
         clearTimeout(typingTimeout);
-        typingTimeout = setTimeout(() => typingIndicator.textContent = "", 2000);
+        typingTimeout = setTimeout(() => {
+          typingIndicator.textContent = "";
+        }, 2000);
       }
     };
 
-    document.getElementById("msg").addEventListener("keypress", function (e) {
+    searchInput.addEventListener("input", applySearchFilter);
+
+    document.getElementById("msg").addEventListener("keypress", (e) => {
       if (e.key === "Enter") send();
       else ws.send(JSON.stringify({ type: "typing", user: displayName }));
     });
 
     function send() {
       const input = document.getElementById("msg");
-      const msg = input.value.trim();
-      if (!msg) return;
-
-      if (msg.startsWith("/clear")) {
-        ws.send(msg);
+      const txt = input.value.trim();
+      if (!txt) return;
+      if (txt === "/clear-accounts") {
+        ws.send(txt);
       } else {
         const time = new Date().toLocaleTimeString();
-        ws.send(`<b>${displayName}</b> [${time}]: ${msg}`);
+        ws.send(`<b>${displayName}</b> [${time}]: ${txt}`);
       }
-
-      input.value = '';
+      input.value = "";
     }
 
     function toggleDeleteMode() {
@@ -184,12 +225,12 @@
 
     function deleteMessage(el) {
       const id = parseInt(el.dataset.id);
-      fetch(httpBackend + "/delete", {
+      fetch(HTTP_URL + "/delete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token, id })
-      }).then(res => {
-        if (!res.ok) alert("Failed to delete message");
+      }).then(r => {
+        if (!r.ok) alert("Failed to delete");
       });
     }
 
@@ -198,13 +239,11 @@
     }
 
     function applySearchFilter() {
-      const term = document.getElementById("search").value.toLowerCase();
-      document.querySelectorAll(".msg-line").forEach(line => {
-        line.style.display = line.textContent.toLowerCase().includes(term) ? "" : "none";
+      const term = searchInput.value.toLowerCase();
+      document.querySelectorAll(".msg-line, .system-msg").forEach(el => {
+        el.style.display = el.textContent.toLowerCase().includes(term) ? "" : "none";
       });
     }
-
-    document.getElementById("search").addEventListener("input", applySearchFilter);
   </script>
 </body>
 </html>
