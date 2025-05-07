@@ -8,65 +8,72 @@
       padding: 20px;
       background: #f7f7f7;
     }
-    h2 {
-      margin-top: 30px;
+    button {
+      padding: 6px 12px;
+      margin-right: 8px;
+      margin-bottom: 10px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
     }
-    .section {
-      margin-bottom: 30px;
-    }
+    #backBtn { background: #007bff; color: white; }
+    #clearAccountsBtn { background: #dc3545; color: white; }
     table {
       width: 100%;
       border-collapse: collapse;
+      margin-bottom: 20px;
       background: white;
     }
     th, td {
-      padding: 10px;
+      padding: 8px;
       border: 1px solid #ccc;
     }
-    button {
-      padding: 5px 10px;
-      margin-left: 5px;
+    h2 { margin-top: 30px; }
+    pre {
+      background: white;
+      padding: 10px;
+      height: 200px;
+      overflow: auto;
+      border: 1px solid #ccc;
     }
   </style>
 </head>
 <body>
+  <button id="backBtn" onclick="location.href='chat.html'">Back to Chat</button>
+  <button id="clearAccountsBtn" onclick="clearAccounts()">Clear Accounts</button>
+
   <h1>Admin Dashboard</h1>
 
-  <div class="section">
+  <div>
     <h2>Active Users</h2>
     <table id="userTable">
-      <thead>
-        <tr><th>Username</th><th>Display Name</th><th>IP</th><th>Actions</th></tr>
-      </thead>
+      <thead><tr><th>Username</th><th>Display Name</th><th>IP</th><th>Actions</th></tr></thead>
       <tbody></tbody>
     </table>
   </div>
 
-  <div class="section">
+  <div>
     <h2>Bans</h2>
     <ul id="banList"></ul>
   </div>
 
-  <div class="section">
+  <div>
     <h2>Logs</h2>
-    <pre id="logBox" style="background:#fff; padding:10px; height:200px; overflow:auto;"></pre>
+    <pre id="logBox">(loading...)</pre>
     <button onclick="refreshLog()">Refresh Logs</button>
   </div>
 
   <script>
+    const HTTP_URL = "https://backend-test-je8a.onrender.com";
     const token = localStorage.getItem("token");
     const displayName = localStorage.getItem("displayName");
-    const httpBackend = "https://backend-test-je8a.onrender.com";
-
-    // Protect dashboard
     if (!token || displayName !== "Administrator") {
       alert("Access denied.");
       location.href = "login.html";
     }
 
-    // Fetch users/bans for table
     async function fetchDashboard() {
-      const res = await fetch(httpBackend + "/admin-state", {
+      const res = await fetch(HTTP_URL + "/admin-state", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token })
@@ -103,20 +110,14 @@
       });
     }
 
-    // Send a slash-command over WebSocket and wait until sent
     function sendCommand(cmd) {
       return new Promise((resolve, reject) => {
         const ws = new WebSocket("wss://backend-test-je8a.onrender.com");
-        ws.onopen = () => {
-          ws.send(cmd);
-          ws.close();
-          resolve();
-        };
+        ws.onopen = () => { ws.send(cmd); ws.close(); resolve(); };
         ws.onerror = err => reject(err);
       });
     }
 
-    // Ban and unban actions
     async function ban(name) {
       await sendCommand(`/ban ${name}`);
       await fetchDashboard();
@@ -125,10 +126,13 @@
       await sendCommand(`/unban ${name}`);
       await fetchDashboard();
     }
+    async function clearAccounts() {
+      await sendCommand(`/clear-accounts`);
+      await fetchDashboard();
+    }
 
-    // Refresh the message log display
     async function refreshLog() {
-      const res = await fetch(httpBackend + "/admin-log", {
+      const res = await fetch(HTTP_URL + "/admin-log", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token })
@@ -139,6 +143,7 @@
 
     // Initial load
     fetchDashboard();
+    refreshLog();
   </script>
 </body>
 </html>
