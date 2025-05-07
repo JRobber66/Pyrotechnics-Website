@@ -1,0 +1,7 @@
+body { font-family: Arial, sans-serif; background: #f8f9fa; color: #333; margin:0; padding:0;}
+.container { max-width: 400px; margin: 80px auto; padding: 20px; background: white; border-radius: 8px; box-shadow:0 2px 4px rgba(0,0,0,0.1);}
+h1 { text-align: center; }
+form { display: flex; flex-direction: column; }
+input, button { margin: 8px 0; padding: 10px; font-size: 1rem;}
+button { cursor: pointer; }
+.error { color: red; text-align: center; }

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>File Share - Unlock</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Unlock File Share</h1>
+    <form id="unlockForm">
+      <input type="password" id="masterKey" placeholder="Enter Master Key" required />
+      <button type="submit">Unlock</button>
+    </form>
+    <div id="error" class="error"></div>
+  </div>
+  <script>
+    document.getElementById('unlockForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const key = document.getElementById('masterKey').value;
+      const res = await fetch('https://backend-test-je8a.onrender.com/api/unlock', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        window.location.href = 'login.html';
+      } else {
+        document.getElementById('error').textContent = data.message;
+      }
+    });
+  </script>
+</body>
+</html>
