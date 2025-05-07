@@ -41,9 +41,16 @@
         const div = document.createElement("div");
         div.className = "msg-line";
         div.dataset.id = data.id;
-        div.dataset.own = data.html.includes(`<b>${displayName}</b>`);
+        const isOwn = data.html.includes(`<b>${displayName}</b>`);
+        div.dataset.own = isOwn;
         div.innerHTML = data.html;
-        if (div.dataset.own === "true") div.onclick = () => deleteMode && deleteMessage(div);
+
+        if (isOwn) {
+          div.onclick = () => {
+            if (deleteMode) deleteMessage(div);
+          };
+        }
+
         chat.appendChild(div);
         chat.scrollTop = chat.scrollHeight;
       }
