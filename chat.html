@@ -33,20 +33,23 @@
 
   <script src="https://cdn.socket.io/4.4.1/socket.io.min.js"></script>
   <script>
-    const BACKEND = 'https://YOUR_BACKEND_URL';
+    const BACKEND = 'https://backend-test-je8a.onrender.com';
     let socket, currentChannel = 'general';
 
     // check auth
     (async () => {
       const me = await fetch(BACKEND + '/api/user', { credentials:'include' });
-      if (!me.ok) return location='login.html';
+      if (!me.ok) return location = 'login.html';
       initSocket();
       loadChannel('general');
     })();
 
     // initialize socket
     function initSocket() {
-      socket = io(BACKEND, { withCredentials:true, auth:{ token: document.cookie.split('token=')[1] } });
+      socket = io(BACKEND, {
+        withCredentials: true,
+        auth: { token: document.cookie.split('token=')[1] }
+      });
       socket.on('joined', ch => {
         currentChannel = ch;
         document.getElementById('current-channel').textContent = '# ' + ch;
@@ -56,7 +59,7 @@
       socket.on('typing', user => {
         const el = document.getElementById('typing-indicator');
         el.textContent = user + ' is typing…';
-        setTimeout(()=>el.textContent='',1500);
+        setTimeout(() => el.textContent = '', 1500);
       });
     }
 
@@ -66,7 +69,7 @@
     });
 
     async function loadChannel(ch) {
-      document.querySelectorAll('#channels li').forEach(li=>li.classList.remove('active'));
+      document.querySelectorAll('#channels li').forEach(li => li.classList.remove('active'));
       document.querySelector(`#channels li[data-channel="${ch}"]`).classList.add('active');
       socket.emit('join', ch);
     }
@@ -95,7 +98,7 @@
     document.getElementById('send').onclick = () => {
       const txt = document.getElementById('msg-input');
       if (!txt.value.trim()) return;
-      socket.emit('message', {channel:currentChannel,content:txt.value});
+      socket.emit('message', {channel: currentChannel, content: txt.value});
       txt.value = '';
     };
 
@@ -116,8 +119,8 @@
 
     // logout
     document.getElementById('logout').onclick = async () => {
-      await fetch(BACKEND+'/api/logout',{method:'POST',credentials:'include'});
-      location='login.html';
+      await fetch(BACKEND + '/api/logout', { method:'POST', credentials:'include' });
+      location = 'login.html';
     };
   </script>
 </body>
