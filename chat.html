@@ -3,12 +3,56 @@
 <head>
   <title>Chat</title>
   <style>
-    body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-    #chatbox { width: 100%; max-width: 600px; height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; }
-    #msg { width: 80%; max-width: 500px; padding: 12px; font-size: 16px; margin-right: 5px; }
-    .msg-line { padding: 2px 0; }
-    .deletable { background-color: #ffeeee; cursor: pointer; }
-    .delete-btn { margin-top: 10px; background: #dc3545; color: white; border: none; padding: 6px 12px; cursor: pointer; border-radius: 4px; }
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    #chatbox {
+      width: 100%;
+      max-width: 600px;
+      height: 300px;
+      overflow-y: auto;
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+    #msg {
+      width: 80%;
+      max-width: 500px;
+      padding: 12px;
+      font-size: 16px;
+      margin-right: 5px;
+    }
+    .msg-line {
+      padding: 2px 0;
+    }
+    .deletable {
+      background-color: #ffeeee;
+      cursor: pointer;
+    }
+    .deleted-msg {
+      font-style: italic;
+      color: #888;
+    }
+    #deleteToggle {
+      margin-top: 10px;
+      border: none;
+      padding: 6px 12px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    #deleteToggle.active {
+      background: #dc3545;
+      color: white;
+    }
+    #deleteToggle.inactive {
+      background: #007bff;
+      color: white;
+    }
   </style>
 </head>
 <body>
@@ -17,7 +61,7 @@
   <div>
     <input id="msg" placeholder="Type your message...">
     <button onclick="send()">Send</button>
-    <button class="delete-btn" onclick="toggleDeleteMode()">Delete Mode</button>
+    <button id="deleteToggle" class="inactive" onclick="toggleDeleteMode()">Delete Mode</button>
   </div>
 
   <script>
@@ -63,7 +107,9 @@
 
       if (data.type === "delete") {
         const target = document.querySelector(`.msg-line[data-id='${data.id}']`);
-        if (target) target.style.display = "none";
+        if (target) {
+          target.innerHTML = `<span class="deleted-msg">[Deleted Message]</span>`;
+        }
       }
     };
 
@@ -82,9 +128,20 @@
 
     function toggleDeleteMode() {
       deleteMode = !deleteMode;
-      document.querySelectorAll(".msg-line[data-own='true']").forEach(line => {
+      const btn = document.getElementById("deleteToggle");
+      const lines = document.querySelectorAll(".msg-line[data-own='true']");
+
+      lines.forEach(line => {
         line.classList.toggle("deletable", deleteMode);
       });
+
+      if (deleteMode) {
+        btn.className = "active";
+        btn.textContent = "Stop Deleting";
+      } else {
+        btn.className = "inactive";
+        btn.textContent = "Delete Mode";
+      }
     }
 
     function deleteMessage(el) {
