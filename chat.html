@@ -3,11 +3,46 @@
 <head>
   <title>Chat</title>
   <style>
-    body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-    #chatbox { width: 100%; max-width: 600px; height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; }
-    #msg { width: 80%; max-width: 500px; padding: 12px; font-size: 16px; margin-right: 5px; }
-    .msg-line { padding: 2px 0; }
-    .delete-btn { margin-top: 10px; background: #dc3545; color: white; border: none; padding: 6px 12px; cursor: pointer; border-radius: 4px; }
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    #chatbox {
+      width: 100%;
+      max-width: 600px;
+      height: 300px;
+      overflow-y: auto;
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+    #msg {
+      width: 80%;
+      max-width: 500px;
+      padding: 12px;
+      font-size: 16px;
+      margin-right: 5px;
+    }
+    .msg-line {
+      padding: 2px 0;
+    }
+    .deletable {
+      background-color: #ffeeee;
+      cursor: pointer;
+    }
+    .delete-btn {
+      margin-top: 10px;
+      background: #dc3545;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
   </style>
 </head>
 <body>
@@ -41,14 +76,15 @@
         const div = document.createElement("div");
         div.className = "msg-line";
         div.dataset.id = data.id;
-        const isOwn = data.html.includes(`<b>${displayName}</b>`);
-        div.dataset.own = isOwn;
+        div.dataset.own = data.html.includes(`<b>${displayName}</b>`);
         div.innerHTML = data.html;
 
-        if (isOwn) {
-          div.onclick = () => {
-            if (deleteMode) deleteMessage(div);
-          };
+        if (div.dataset.own === "true") {
+          div.addEventListener("click", () => {
+            if (deleteMode) {
+              deleteMessage(div);
+            }
+          });
         }
 
         chat.appendChild(div);
@@ -61,7 +97,7 @@
       }
     };
 
-    document.getElementById("msg").addEventListener("keypress", e => {
+    document.getElementById("msg").addEventListener("keypress", function (e) {
       if (e.key === "Enter") send();
     });
 
@@ -77,7 +113,7 @@
     function toggleDeleteMode() {
       deleteMode = !deleteMode;
       document.querySelectorAll(".msg-line[data-own='true']").forEach(line => {
-        line.style.backgroundColor = deleteMode ? "#ffeeee" : "";
+        line.classList.toggle("deletable", deleteMode);
       });
     }
 
@@ -87,6 +123,8 @@
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token, id })
+      }).then(res => {
+        if (!res.ok) alert("Failed to delete message");
       });
     }
   </script>
