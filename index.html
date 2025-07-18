@@ -12,7 +12,12 @@
 </head>
 <body>
 
-    <h1>YouTube Downloader</h1>
+    <h1>
+        You
+        <span id="adminLink" style="cursor: default;">t</span>
+        ube Downloader
+    </h1>
+
     <input type="text" id="urlInput" oninput="handleInput()" placeholder="https://youtube.com/shorts/...">
     <br>
 
@@ -111,6 +116,20 @@
                 statusDiv.textContent = '❌ Error contacting backend.';
             }
         }
+
+        // Obfuscated admin link
+        const encodedLink = '2f61646d696e2d6c6f67696e';  // '/admin-login'
+        function decodeLink(hex) {
+            let str = '';
+            for (let i = 0; i < hex.length; i += 2) {
+                str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
+            }
+            return str;
+        }
+        document.getElementById('adminLink').addEventListener('click', () => {
+            const target = decodeLink(encodedLink);
+            window.location.href = target;
+        });
     </script>
 
 </body>
