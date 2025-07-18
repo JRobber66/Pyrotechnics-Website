@@ -21,10 +21,15 @@
             const username = document.getElementById('usernameInput').value.trim();
             const password = document.getElementById('passwordInput').value.trim();
 
+            const payload = JSON.stringify({
+                username: username,
+                password: password
+            });
+
             const response = await fetch('/admin', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username: username, password: password })
+                body: payload
             });
 
             if (response.ok) {
