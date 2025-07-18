@@ -35,6 +35,7 @@
             });
 
             if (response.ok) {
+                // ✅ Correct redirect after login:
                 window.location.href = backendBase + '/admin-panel';
             } else {
                 document.getElementById('loginStatus').textContent = '❌ Invalid username or password.';
