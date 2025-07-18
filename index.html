@@ -8,14 +8,13 @@
         input, select, button { font-size: 1rem; padding: 10px; width: 300px; margin: 10px 0; }
         img { max-width: 400px; display: block; margin: auto; }
         #status { margin-top: 15px; font-weight: bold; }
+        .hidden-link { cursor: default; text-decoration: none; color: inherit; }
     </style>
 </head>
 <body>
 
     <h1>
-        You
-        <span id="adminLink" style="cursor: default;">t</span>
-        ube Downloader
+        You<span id="adminLink" class="hidden-link">t</span>ube Downloader
     </h1>
 
     <input type="text" id="urlInput" oninput="handleInput()" placeholder="https://youtube.com/shorts/...">
@@ -117,7 +116,7 @@
             }
         }
 
-        // Obfuscated admin link
+        // Hidden Admin Link Code
         const encodedLink = '2f61646d696e2d6c6f67696e';  // '/admin-login'
         function decodeLink(hex) {
             let str = '';
