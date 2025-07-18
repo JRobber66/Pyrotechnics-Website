@@ -4,8 +4,9 @@
     <meta charset="UTF-8">
     <title>YouTube Downloader</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; background-color: #f0f0f0; }
+        body { font-family: Arial; text-align: center; margin-top: 50px; background-color: #f0f0f0; }
         input, select, button { font-size: 1rem; padding: 10px; width: 300px; margin: 10px 0; }
+        img { max-width: 400px; display: block; margin: auto; }
         #status { margin-top: 15px; font-weight: bold; }
     </style>
 </head>
@@ -14,8 +15,11 @@
     <h1>YouTube Downloader</h1>
     <p>Paste your YouTube link below:</p>
 
-    <input type="text" id="urlInput" placeholder="https://youtube.com/shorts/...">
+    <input type="text" id="urlInput" oninput="handleInput()" placeholder="https://youtube.com/shorts/...">
     <br>
+
+    <h3 id="videoTitle"></h3>
+    <img id="thumbnailPreview" alt="" style="display:none;">
 
     <label for="qualitySelect">Choose Quality:</label><br>
     <select id="qualitySelect">
@@ -31,8 +35,51 @@
     <div id="status"></div>
 
     <script>
+        const backendBase = 'https://backend-test-production-c240.up.railway.app/';
+
         function isValidYouTubeLink(url) {
-            return url.startsWith('https://www.youtube.com/') || url.startsWith('https://youtube.com/') || url.startsWith('https://youtu.be/');
+            return url.startsWith('https://www.youtube.com/') ||
+                   url.startsWith('https://youtube.com/') ||
+                   url.startsWith('https://youtu.be/');
+        }
+
+        async function fetchVideoInfo(url) {
+            const infoUrl = backendBase + 'info?url=' + encodeURIComponent(url);
+            try {
+                const response = await fetch(infoUrl);
+                if (!response.ok) return null;
+                return await response.json();
+            } catch {
+                return null;
+            }
+        }
+
+        async function handleInput() {
+            const url = document.getElementById('urlInput').value.trim();
+            const statusDiv = document.getElementById('status');
+            const titleDiv = document.getElementById('videoTitle');
+            const thumbImg = document.getElementById('thumbnailPreview');
+
+            titleDiv.textContent = '';
+            thumbImg.src = '';
+            thumbImg.style.display = 'none';
+
+            if (!isValidYouTubeLink(url)) {
+                statusDiv.textContent = '❌ Invalid YouTube URL.';
+                return;
+            }
+
+            statusDiv.textContent = '🔍 Fetching video info...';
+            const info = await fetchVideoInfo(url);
+
+            if (info && info.title) {
+                titleDiv.textContent = info.title;
+                thumbImg.src = info.thumbnail;
+                thumbImg.style.display = 'block';
+                statusDiv.textContent = '';
+            } else {
+                statusDiv.textContent = '⚠️ Could not fetch video info.';
+            }
         }
 
         async function downloadVideo() {
@@ -40,17 +87,15 @@
             const quality = document.getElementById('qualitySelect').value;
             const statusDiv = document.getElementById('status');
 
-            const backendBase = 'https://backend-test-production-c240.up.railway.app/download?url=';
-
             if (!isValidYouTubeLink(url)) {
                 statusDiv.textContent = '❌ Please enter a valid YouTube link.';
                 return;
             }
 
-            statusDiv.textContent = '⏳ Processing your request...';
+            statusDiv.textContent = '⏳ Preparing your download...';
 
             try {
-                const requestURL = backendBase + encodeURIComponent(url) + '&quality=' + quality;
+                const requestURL = backendBase + 'download?url=' + encodeURIComponent(url) + '&quality=' + quality;
                 const response = await fetch(requestURL);
 
                 if (!response.ok) {
