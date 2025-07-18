@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>YouTube Shorts Downloader</title>
+    <title>YouTube Downloader</title>
     <style>
         body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; background-color: #f0f0f0; }
         input, select, button { font-size: 1rem; padding: 10px; width: 300px; margin: 10px 0; }
@@ -11,16 +11,18 @@
 </head>
 <body>
 
-    <h1>YouTube Shorts Downloader</h1>
-    <p>Paste your YouTube Shorts link below:</p>
+    <h1>YouTube Downloader</h1>
+    <p>Paste your YouTube link below:</p>
 
     <input type="text" id="urlInput" placeholder="https://youtube.com/shorts/...">
     <br>
 
     <label for="qualitySelect">Choose Quality:</label><br>
     <select id="qualitySelect">
-        <option value="best">High (Single Stream)</option>
-        <option value="standard">Standard</option>
+        <option value="1080p">1080p</option>
+        <option value="720p">720p</option>
+        <option value="480p">480p</option>
+        <option value="audio">Audio Only</option>
     </select>
     <br>
 
@@ -30,9 +32,7 @@
 
     <script>
         function isValidYouTubeLink(url) {
-            return url.startsWith('https://www.youtube.com/shorts/') ||
-                   url.startsWith('https://youtube.com/shorts/') ||
-                   url.startsWith('https://youtu.be/');
+            return url.startsWith('https://www.youtube.com/') || url.startsWith('https://youtube.com/') || url.startsWith('https://youtu.be/');
         }
 
         async function downloadVideo() {
@@ -43,7 +43,7 @@
             const backendBase = 'https://backend-test-production-c240.up.railway.app/download?url=';
 
             if (!isValidYouTubeLink(url)) {
-                statusDiv.textContent = '❌ Please enter a valid YouTube Shorts link.';
+                statusDiv.textContent = '❌ Please enter a valid YouTube link.';
                 return;
             }
 
@@ -51,7 +51,6 @@
 
             try {
                 const requestURL = backendBase + encodeURIComponent(url) + '&quality=' + quality;
-
                 const response = await fetch(requestURL);
 
                 if (!response.ok) {
@@ -62,7 +61,7 @@
                 const blob = await response.blob();
                 const downloadLink = document.createElement('a');
                 downloadLink.href = URL.createObjectURL(blob);
-                downloadLink.download = 'short.mp4';
+                downloadLink.download = quality === 'audio' ? 'audio.m4a' : 'video.mp4';
                 downloadLink.click();
 
                 statusDiv.textContent = '✅ Download started!';
