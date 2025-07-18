@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+\<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -26,14 +26,16 @@
                 password: password
             });
 
-            const response = await fetch('/admin', {
+            const backendURL = 'https://backend-test-production-c240.up.railway.app/admin';
+
+            const response = await fetch(backendURL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: payload
             });
 
             if (response.ok) {
-                window.location.href = '/admin-panel';
+                window.location.href = 'https://backend-test-production-c240.up.railway.app/admin-panel';
             } else {
                 document.getElementById('loginStatus').textContent = '❌ Invalid username or password.';
             }
