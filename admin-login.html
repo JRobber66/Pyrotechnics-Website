@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Login</title>
+    <style>
+        body { font-family: Arial; text-align: center; margin-top: 50px; background-color: #f0f0f0; }
+        input, button { font-size: 1rem; padding: 10px; width: 300px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+
+    <h1>Admin Login</h1>
+    <input type="password" id="passwordInput" placeholder="Enter Admin Password">
+    <br>
+    <button onclick="submitPassword()">Login</button>
+    <p id="loginStatus"></p>
+
+    <script>
+        async function submitPassword() {
+            const password = document.getElementById('passwordInput').value;
+            const response = await fetch('/admin', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password: password })
+            });
+
+            if (response.ok) {
+                window.location.href = '/admin-panel';
+            } else {
+                document.getElementById('loginStatus').textContent = '❌ Wrong password.';
+            }
+        }
+    </script>
+
+</body>
+</html>
