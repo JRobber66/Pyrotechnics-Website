@@ -8,7 +8,6 @@
         input, select, button { font-size: 1rem; padding: 10px; width: 300px; margin: 10px 0; }
         img { max-width: 400px; display: block; margin: auto; }
         #status { margin-top: 15px; font-weight: bold; }
-        progress { width: 80%; height: 20px; }
     </style>
 </head>
 <body>
@@ -22,7 +21,7 @@
     <p id="filesizeDisplay"></p>
 
     <label for="qualitySelect">Choose Quality:</label><br>
-    <select id="qualitySelect">
+    <select id="qualitySelect" onchange="handleInput()">
         <option value="1080p">1080p</option>
         <option value="720p">720p</option>
         <option value="480p">480p</option>
@@ -31,11 +30,11 @@
     <br>
 
     <button onclick="downloadVideo()">Download</button>
-    <progress id="downloadProgress" value="0" max="100" style="display:none;"></progress>
+
     <div id="status"></div>
 
     <script>
-        const apiKey = 'super_secret_key_123';
+        const apiKey = 'xQk!39vd$2P0L7ab8wZ*Vn@1Ff9Rb6Yp';
         const backendBase = 'https://backend-test-production-c240.up.railway.app/';
 
         function isValidYouTubeLink(url) {
@@ -44,8 +43,8 @@
                    url.startsWith('https://youtu.be/');
         }
 
-        async function fetchVideoInfo(url) {
-            const infoUrl = backendBase + 'info?url=' + encodeURIComponent(url) + '&key=' + apiKey;
+        async function fetchVideoInfo(url, quality) {
+            const infoUrl = backendBase + 'info?url=' + encodeURIComponent(url) + '&key=' + apiKey + '&quality=' + quality;
             try {
                 const response = await fetch(infoUrl);
                 if (!response.ok) return null;
@@ -57,6 +56,7 @@
 
         async function handleInput() {
             const url = document.getElementById('urlInput').value.trim();
+            const quality = document.getElementById('qualitySelect').value;
             const titleDiv = document.getElementById('videoTitle');
             const thumbImg = document.getElementById('thumbnailPreview');
             const filesizeDiv = document.getElementById('filesizeDisplay');
@@ -67,13 +67,14 @@
 
             if (!isValidYouTubeLink(url)) return;
 
-            const info = await fetchVideoInfo(url);
+            const info = await fetchVideoInfo(url, quality);
 
             if (info && info.title) {
                 titleDiv.textContent = info.title;
                 thumbImg.src = info.thumbnail;
                 thumbImg.style.display = 'block';
-                filesizeDiv.textContent = 'Approximate File Size: ' + Math.round(info.filesize / 1048576) + ' MB';
+                const sizeMB = info.filesize / (1024 * 1024);
+                filesizeDiv.textContent = 'Estimated File Size: ' + sizeMB.toFixed(2) + ' MB';
             }
         }
 
@@ -81,31 +82,18 @@
             const url = document.getElementById('urlInput').value.trim();
             const quality = document.getElementById('qualitySelect').value;
             const statusDiv = document.getElementById('status');
-            const progressBar = document.getElementById('downloadProgress');
 
             if (!isValidYouTubeLink(url)) {
                 statusDiv.textContent = '❌ Invalid YouTube URL.';
                 return;
             }
 
-            const taskID = Math.random().toString(36).substring(2, 10);
+            statusDiv.textContent = 'Downloading...';
 
-            statusDiv.textContent = 'Starting download...';
-            progressBar.style.display = 'block';
-            progressBar.value = 0;
-
-            const poll = setInterval(async () => {
-                const progressResponse = await fetch(backendBase + 'progress?task=' + taskID + '&key=' + apiKey);
-                const progressData = await progressResponse.json();
-                const percent = parseFloat(progressData.progress.replace('%','')) || 0;
-                progressBar.value = percent;
-            }, 1000);
-
-            const requestURL = backendBase + 'download?url=' + encodeURIComponent(url) + '&quality=' + quality + '&key=' + apiKey + '&task=' + taskID;
+            const requestURL = backendBase + 'download?url=' + encodeURIComponent(url) + '&quality=' + quality + '&key=' + apiKey;
 
             try {
                 const response = await fetch(requestURL);
-                clearInterval(poll);
 
                 if (!response.ok) {
                     statusDiv.textContent = '❌ Download failed.';
@@ -118,10 +106,8 @@
                 downloadLink.download = 'video.mp4';
                 downloadLink.click();
 
-                progressBar.style.display = 'none';
                 statusDiv.textContent = '✅ Download complete!';
             } catch {
-                clearInterval(poll);
                 statusDiv.textContent = '❌ Error contacting backend.';
             }
         }
