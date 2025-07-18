@@ -19,8 +19,8 @@
 
     <label for="qualitySelect">Choose Quality:</label><br>
     <select id="qualitySelect">
-        <option value="high">High Quality</option>
-        <option value="standard">Standard Quality</option>
+        <option value="best">High (Single Stream)</option>
+        <option value="standard">Standard</option>
     </select>
     <br>
 
@@ -39,7 +39,8 @@
             const url = document.getElementById('urlInput').value.trim();
             const quality = document.getElementById('qualitySelect').value;
             const statusDiv = document.getElementById('status');
-            const backendURL = 'https://backend-test-production-c240.up.railway.app/download?url=';
+
+            const backendBase = 'https://backend-test-production-c240.up.railway.app/download?url=';
 
             if (!isValidYouTubeLink(url)) {
                 statusDiv.textContent = '❌ Please enter a valid YouTube Shorts link.';
@@ -49,7 +50,8 @@
             statusDiv.textContent = '⏳ Processing your request...';
 
             try {
-                const requestURL = backendURL + encodeURIComponent(url) + '&quality=' + quality;
+                const requestURL = backendBase + encodeURIComponent(url) + '&quality=' + quality;
+
                 const response = await fetch(requestURL);
 
                 if (!response.ok) {
