@@ -4,31 +4,26 @@
     <meta charset="UTF-8">
     <title>YouTube Shorts Downloader</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin: 50px;
-            background-color: #f0f0f0;
-        }
-        input, button {
-            font-size: 1rem;
-            padding: 10px;
-            width: 300px;
-            margin: 10px 0;
-        }
-        #status {
-            margin-top: 15px;
-            font-weight: bold;
-        }
+        body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; background-color: #f0f0f0; }
+        input, select, button { font-size: 1rem; padding: 10px; width: 300px; margin: 10px 0; }
+        #status { margin-top: 15px; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <h1>YouTube Shorts Downloader</h1>
-    <p>Paste a YouTube Shorts link below:</p>
+    <p>Paste your YouTube Shorts link below:</p>
 
     <input type="text" id="urlInput" placeholder="https://youtube.com/shorts/...">
     <br>
+
+    <label for="qualitySelect">Choose Quality:</label><br>
+    <select id="qualitySelect">
+        <option value="high">High Quality</option>
+        <option value="standard">Standard Quality</option>
+    </select>
+    <br>
+
     <button onclick="downloadVideo()">Download</button>
 
     <div id="status"></div>
@@ -42,6 +37,7 @@
 
         async function downloadVideo() {
             const url = document.getElementById('urlInput').value.trim();
+            const quality = document.getElementById('qualitySelect').value;
             const statusDiv = document.getElementById('status');
             const backendURL = 'https://backend-test-production-c240.up.railway.app/download?url=';
 
@@ -53,7 +49,8 @@
             statusDiv.textContent = '⏳ Processing your request...';
 
             try {
-                const response = await fetch(backendURL + encodeURIComponent(url));
+                const requestURL = backendURL + encodeURIComponent(url) + '&quality=' + quality;
+                const response = await fetch(requestURL);
 
                 if (!response.ok) {
                     statusDiv.textContent = '❌ Failed to download video.';
