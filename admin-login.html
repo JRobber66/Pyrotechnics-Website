@@ -11,24 +11,26 @@
 <body>
 
     <h1>Admin Login</h1>
-    <input type="password" id="passwordInput" placeholder="Enter Admin Password">
-    <br>
-    <button onclick="submitPassword()">Login</button>
+    <input type="text" id="usernameInput" placeholder="Username"><br>
+    <input type="password" id="passwordInput" placeholder="Password"><br>
+    <button onclick="submitLogin()">Login</button>
     <p id="loginStatus"></p>
 
     <script>
-        async function submitPassword() {
-            const password = document.getElementById('passwordInput').value;
+        async function submitLogin() {
+            const username = document.getElementById('usernameInput').value.trim();
+            const password = document.getElementById('passwordInput').value.trim();
+
             const response = await fetch('/admin', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ password: password })
+                body: JSON.stringify({ username: username, password: password })
             });
 
             if (response.ok) {
                 window.location.href = '/admin-panel';
             } else {
-                document.getElementById('loginStatus').textContent = '❌ Wrong password.';
+                document.getElementById('loginStatus').textContent = '❌ Invalid username or password.';
             }
         }
     </script>
