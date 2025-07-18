@@ -1,37 +1,77 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>File Share - Unlock</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <title>YouTube Shorts Downloader</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 50px;
+            background-color: #f0f0f0;
+        }
+        input, button {
+            font-size: 1rem;
+            padding: 10px;
+            width: 300px;
+            margin: 10px 0;
+        }
+        #status {
+            margin-top: 15px;
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Unlock File Share</h1>
-    <form id="unlockForm">
-      <input type="password" id="masterKey" placeholder="Enter Master Key" required />
-      <button type="submit">Unlock</button>
-    </form>
-    <div id="error" class="error"></div>
-  </div>
-  <script>
-    document.getElementById('unlockForm').addEventListener('submit', async function(e) {
-      e.preventDefault();
-      const key = document.getElementById('masterKey').value;
-      const res = await fetch('https://backend-test-je8a.onrender.com/api/unlock', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ key })
-      });
-      const data = await res.json();
-      if (res.ok) {
-        window.location.href = 'login.html';
-      } else {
-        document.getElementById('error').textContent = data.message;
-      }
-    });
-  </script>
+
+    <h1>YouTube Shorts Downloader</h1>
+    <p>Paste a YouTube Shorts link below:</p>
+
+    <input type="text" id="urlInput" placeholder="https://youtube.com/shorts/...">
+    <br>
+    <button onclick="downloadVideo()">Download</button>
+
+    <div id="status"></div>
+
+    <script>
+        function isValidYouTubeLink(url) {
+            return url.startsWith('https://www.youtube.com/shorts/') ||
+                   url.startsWith('https://youtube.com/shorts/') ||
+                   url.startsWith('https://youtu.be/');
+        }
+
+        async function downloadVideo() {
+            const url = document.getElementById('urlInput').value.trim();
+            const statusDiv = document.getElementById('status');
+            const backendURL = 'https://backend-test-production-c240.up.railway.app/download?url=';
+
+            if (!isValidYouTubeLink(url)) {
+                statusDiv.textContent = '❌ Please enter a valid YouTube Shorts link.';
+                return;
+            }
+
+            statusDiv.textContent = '⏳ Processing your request...';
+
+            try {
+                const response = await fetch(backendURL + encodeURIComponent(url));
+
+                if (!response.ok) {
+                    statusDiv.textContent = '❌ Failed to download video.';
+                    return;
+                }
+
+                const blob = await response.blob();
+                const downloadLink = document.createElement('a');
+                downloadLink.href = URL.createObjectURL(blob);
+                downloadLink.download = 'short.mp4';
+                downloadLink.click();
+
+                statusDiv.textContent = '✅ Download started!';
+            } catch (error) {
+                statusDiv.textContent = '❌ Error connecting to backend.';
+            }
+        }
+    </script>
+
 </body>
 </html>
