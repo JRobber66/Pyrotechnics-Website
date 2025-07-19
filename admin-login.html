@@ -31,11 +31,11 @@
             const response = await fetch(backendBase + '/admin', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',  // <-- Critical
                 body: payload
             });
 
             if (response.ok) {
-                // ✅ Correct redirect after login:
                 window.location.href = backendBase + '/admin-panel';
             } else {
                 document.getElementById('loginStatus').textContent = '❌ Invalid username or password.';
