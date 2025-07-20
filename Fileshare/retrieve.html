@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Retrieve File</title>
+</head>
+<body>
+
+    <h1>Retrieve Your File</h1>
+    <input type="text" id="codeInput" placeholder="Enter retrieval code"><br><br>
+    <button onclick="downloadFile()">Download</button>
+
+    <p id="result"></p>
+
+    <p><a href="upload.html">Go to Upload Page</a></p>
+
+    <script>
+        const backendURL = 'https://filebackend-production.up.railway.app';
+
+        function downloadFile() {
+            const code = document.getElementById('codeInput').value.trim();
+            if (!code) {
+                document.getElementById('result').innerText = 'Please enter a code.';
+                return;
+            }
+            window.location.href = backendURL + '/retrieve/' + code;
+        }
+    </script>
+
+</body>
+</html>

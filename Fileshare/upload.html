@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Secure File Upload</title>
+</head>
+<body>
+
+    <h1>Upload Files</h1>
+    <form id="uploadForm">
+        <input type="file" name="files" multiple><br><br>
+        <label><input type="checkbox" id="deleteAfter"> Delete after download</label><br><br>
+        <button type="button" onclick="upload()">Upload</button>
+    </form>
+
+    <p id="result"></p>
+
+    <p><a href="retrieve.html">Go to File Retrieval Page</a></p>
+
+    <script>
+        const backendURL = 'https://filebackend-production.up.railway.app';
+
+        async function upload() {
+            const formData = new FormData(document.getElementById('uploadForm'));
+            formData.append('delete_after', document.getElementById('deleteAfter').checked ? 'true' : 'false');
+
+            const response = await fetch(backendURL + '/upload', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+            if (data.code) {
+                document.getElementById('result').innerText = 'Your retrieval code: ' + data.code;
+            } else {
+                document.getElementById('result').innerText = 'Upload failed.';
+            }
+        }
+    </script>
+
+</body>
+</html>
