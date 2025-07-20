@@ -3,34 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <title>Retrieve File</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        body { font-family: Arial; text-align: center; background-color: #f0f2f5; padding: 50px; }
-        input, button { font-size: 1rem; padding: 10px; margin: 10px; }
-        #result { font-weight: bold; color: red; margin-top: 20px; }
+        body {
+            font-family: Arial;
+            text-align: center;
+            background-color: #f0f2f5;
+            padding: 30px;
+            margin: 0;
+        }
+        h1 { margin-bottom: 20px; }
+        input[type="text"] {
+            font-size: 1rem;
+            padding: 10px;
+            width: 250px;
+            max-width: 90%;
+        }
+        button {
+            font-size: 1rem;
+            padding: 10px;
+            margin: 10px;
+        }
+        #result { font-weight: bold; margin-top: 20px; color: red; }
         a { display: block; margin-top: 20px; font-size: 1rem; }
+        @media (max-width: 600px) {
+            input[type="text"] { font-size: 1rem; width: 80%; }
+            h1 { font-size: 1.5rem; }
+        }
     </style>
 </head>
 <body>
 
-    <h1>Retrieve Your File</h1>
-    <input type="text" id="codeInput" placeholder="Enter retrieval code"><br>
-    <button onclick="downloadFile()">Download</button>
+<h1>Retrieve Your File</h1>
 
-    <p id="result"></p>
-    <a href="upload.html">Go to Upload Page</a>
+<input type="text" id="codeInput" placeholder="Enter retrieval code">
+<br>
+<button onclick="pasteCode()">Paste</button>
+<button onclick="downloadFile()">Download</button>
 
-    <script>
-        const backendURL = 'https://filebackend-production.up.railway.app';
+<p id="result"></p>
 
-        function downloadFile() {
-            const code = document.getElementById('codeInput').value.trim();
-            if (!code) {
-                document.getElementById('result').innerText = 'Please enter a code.';
-                return;
-            }
-            window.location.href = backendURL + '/retrieve/' + code;
-        }
-    </script>
+<a href="upload.html">Go to Upload Page</a>
+
+<script>
+const backendURL = 'https://filebackend-production.up.railway.app';
+
+function pasteCode() {
+    navigator.clipboard.readText().then(text => {
+        document.getElementById('codeInput').value = text;
+    }).catch(() => {
+        alert('Failed to read clipboard.');
+    });
+}
+
+function downloadFile() {
+    const code = document.getElementById('codeInput').value.trim();
+    if (!code) {
+        document.getElementById('result').innerText = 'Please enter a code.';
+        return;
+    }
+    document.getElementById('result').innerText = '';
+    window.location.href = backendURL + '/retrieve/' + code;
+}
+</script>
 
 </body>
 </html>
