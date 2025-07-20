@@ -26,9 +26,28 @@
             margin: 10px;
         }
         #status { font-weight: bold; margin-top: 20px; }
-        a { display: block; margin-top: 20px; font-size: 1rem; }
-
-        /* Custom Warning Popup */
+        #progressContainer {
+            display: none;
+            margin-top: 20px;
+        }
+        #progressBar {
+            width: 80%;
+            height: 20px;
+            background-color: #ddd;
+            margin: 0 auto;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        #progressFill {
+            height: 100%;
+            background-color: #4CAF50;
+            width: 0%;
+        }
+        #eta {
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+        /* Popup Modal */
         #warningPopup {
             display: none;
             position: fixed;
@@ -44,7 +63,7 @@
             color: #f44336;
         }
         #warningPopup button {
-            margin-top: 10px;
+            margin: 10px;
             font-size: 1rem;
             padding: 8px 20px;
             background-color: #f44336;
@@ -52,121 +71,173 @@
             border: none;
             border-radius: 5px;
         }
+        a { display: block; margin-top: 20px; font-size: 1rem; }
     </style>
 </head>
 <body>
 
-    <h1>Secure File Upload</h1>
+<h1>Secure File Upload</h1>
 
-    <div class="drop-area" id="dropArea">
-        Click or drag file(s) here to upload
-    </div>
+<div class="drop-area" id="dropArea">
+    Click or drag file(s) here to upload
+</div>
 
-    <input type="file" id="fileInput" multiple style="display:none;">
+<input type="file" id="fileInput" multiple style="display:none;">
+<br>
+<label><input type="checkbox" id="deleteAfter"> Delete after download</label><br>
+<button onclick="prepareUpload()">Upload</button>
 
-    <br>
-    <label><input type="checkbox" id="deleteAfter"> Delete after download</label><br>
+<p id="status"></p>
+<p id="result"></p>
 
-    <button onclick="upload()">Upload</button>
+<div id="progressContainer">
+    <div id="progressBar"><div id="progressFill"></div></div>
+    <div id="eta"></div>
+</div>
 
-    <p id="status"></p>
-    <p id="result"></p>
+<a href="retrieve.html">Go to File Retrieval Page</a>
 
-    <a href="retrieve.html">Go to File Retrieval Page</a>
+<!-- Warning Popup -->
+<div id="warningPopup">
+    <div id="popupMessage"></div>
+    <button onclick="cancelLargeUpload()">Cancel</button>
+    <button onclick="confirmLargeUpload()">Yes, Upload</button>
+</div>
 
-    <!-- Warning Popup -->
-    <div id="warningPopup">
-        <div id="popupMessage"></div>
-        <button onclick="closePopup()">Cancel Upload</button>
-    </div>
+<script>
+const backendURL = 'https://filebackend-production.up.railway.app';
+const dropArea = document.getElementById('dropArea');
+const fileInput = document.getElementById('fileInput');
+const warningPopup = document.getElementById('warningPopup');
+const popupMessage = document.getElementById('popupMessage');
+const progressContainer = document.getElementById('progressContainer');
+const progressFill = document.getElementById('progressFill');
+const etaDisplay = document.getElementById('eta');
 
-    <script>
-        const backendURL = 'https://filebackend-production.up.railway.app';
-        const dropArea = document.getElementById('dropArea');
-        const fileInput = document.getElementById('fileInput');
-        const warningPopup = document.getElementById('warningPopup');
-        const popupMessage = document.getElementById('popupMessage');
+let selectedFiles = [];
+let totalSize = 0;
+let uploadingLarge = false;
 
-        let selectedFiles = [];
+dropArea.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+dropArea.addEventListener('dragover', (e) => { e.preventDefault(); dropArea.classList.add('dragover'); });
+dropArea.addEventListener('dragleave', () => dropArea.classList.remove('dragover'));
+dropArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropArea.classList.remove('dragover');
+    handleFiles(e.dataTransfer.files);
+});
 
-        dropArea.addEventListener('click', () => fileInput.click());
+function handleFiles(files) {
+    selectedFiles = files;
+    totalSize = 0;
+    for (const file of selectedFiles) {
+        totalSize += file.size;
+    }
+    dropArea.innerText = selectedFiles.length + " file(s) selected";
+}
 
-        fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+function prepareUpload() {
+    if (selectedFiles.length === 0) {
+        document.getElementById('status').innerText = 'No files selected.';
+        return;
+    }
 
-        dropArea.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dropArea.classList.add('dragover');
-        });
+    if (totalSize > 50 * 1024 * 1024) {
+        const sizeMB = (totalSize / (1024 * 1024)).toFixed(2);
+        popupMessage.innerText = `Woah there, that’s a big upload. (${sizeMB} MB)\nAre you sure you want to upload?`;
+        warningPopup.style.display = 'block';
+        uploadingLarge = true;
+    } else {
+        uploadingLarge = false;
+        uploadSmall();
+    }
+}
 
-        dropArea.addEventListener('dragleave', () => {
-            dropArea.classList.remove('dragover');
-        });
+function cancelLargeUpload() {
+    warningPopup.style.display = 'none';
+    selectedFiles = [];
+    dropArea.innerText = 'Click or drag file(s) here to upload';
+}
 
-        dropArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dropArea.classList.remove('dragover');
-            handleFiles(e.dataTransfer.files);
-        });
+function confirmLargeUpload() {
+    warningPopup.style.display = 'none';
+    uploadLarge();
+}
 
-        function handleFiles(files) {
-            selectedFiles = files;
-            let bigFileDetected = false;
-            let biggestFileSize = 0;
+function uploadSmall() {
+    document.getElementById('status').innerText = 'Uploading...';
+    document.getElementById('result').innerText = '';
 
-            for (const file of selectedFiles) {
-                if (file.size > 50 * 1024 * 1024) { // 50MB
-                    bigFileDetected = true;
-                    biggestFileSize = file.size;
-                }
-            }
+    const formData = new FormData();
+    for (const file of selectedFiles) {
+        formData.append('files', file);
+    }
+    formData.append('delete_after', document.getElementById('deleteAfter').checked ? 'true' : 'false');
 
-            if (bigFileDetected) {
-                const sizeMB = (biggestFileSize / (1024 * 1024)).toFixed(2);
-                popupMessage.innerText = `Woah there, that’s a big file. (${sizeMB} MB)\nAre you sure you want to upload?`;
-                warningPopup.style.display = 'block';
-                return;
-            }
+    fetch(backendURL + '/upload', {
+        method: 'POST',
+        body: formData
+    }).then(res => res.json())
+    .then(data => {
+        document.getElementById('status').innerText = 'Done!';
+        document.getElementById('result').innerText = 'Your retrieval code: ' + data.code;
+    }).catch(() => {
+        document.getElementById('status').innerText = 'Upload failed.';
+    });
+}
 
-            dropArea.innerText = selectedFiles.length + " file(s) selected";
+function uploadLarge() {
+    const formData = new FormData();
+    for (const file of selectedFiles) {
+        formData.append('files', file);
+    }
+    formData.append('delete_after', document.getElementById('deleteAfter').checked ? 'true' : 'false');
+
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', backendURL + '/upload', true);
+
+    document.getElementById('status').innerText = 'Uploading large file(s)...';
+    document.getElementById('result').innerText = '';
+    progressContainer.style.display = 'block';
+    progressFill.style.width = '0%';
+    etaDisplay.innerText = '';
+
+    let startTime = Date.now();
+
+    xhr.upload.onprogress = function(event) {
+        if (event.lengthComputable) {
+            const percent = (event.loaded / event.total) * 100;
+            progressFill.style.width = percent.toFixed(2) + '%';
+
+            const elapsed = (Date.now() - startTime) / 1000;
+            const speed = event.loaded / elapsed;
+            const remainingBytes = event.total - event.loaded;
+            const eta = remainingBytes / speed;
+
+            etaDisplay.innerText = `ETA: ${Math.ceil(eta)} seconds remaining`;
         }
+    };
 
-        function closePopup() {
-            selectedFiles = [];
-            warningPopup.style.display = 'none';
-            dropArea.innerText = 'Click or drag file(s) here to upload';
+    xhr.onload = function() {
+        progressContainer.style.display = 'none';
+        if (xhr.status === 200) {
+            const data = JSON.parse(xhr.responseText);
+            document.getElementById('status').innerText = 'Done!';
+            document.getElementById('result').innerText = 'Your retrieval code: ' + data.code;
+        } else {
+            document.getElementById('status').innerText = 'Upload failed.';
         }
+    };
 
-        async function upload() {
-            if (selectedFiles.length === 0) {
-                document.getElementById('status').innerText = 'No files selected.';
-                return;
-            }
+    xhr.onerror = function() {
+        progressContainer.style.display = 'none';
+        document.getElementById('status').innerText = 'Upload failed.';
+    };
 
-            warningPopup.style.display = 'none';
-
-            const formData = new FormData();
-            for (const file of selectedFiles) {
-                formData.append('files', file);
-            }
-            formData.append('delete_after', document.getElementById('deleteAfter').checked ? 'true' : 'false');
-
-            document.getElementById('status').innerText = 'Uploading...';
-            document.getElementById('result').innerText = '';
-
-            const response = await fetch(backendURL + '/upload', {
-                method: 'POST',
-                body: formData
-            });
-
-            const data = await response.json();
-            if (data.code) {
-                document.getElementById('status').innerText = 'Done!';
-                document.getElementById('result').innerText = 'Your retrieval code: ' + data.code;
-            } else {
-                document.getElementById('status').innerText = 'Upload failed.';
-            }
-        }
-    </script>
+    xhr.send(formData);
+}
+</script>
 
 </body>
 </html>
