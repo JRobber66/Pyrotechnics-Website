@@ -3,22 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <title>Project Hub</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        body { font-family: Arial; text-align: center; background-color: #f0f2f5; padding: 50px; }
-        h1 { margin-bottom: 30px; }
+        body {
+            font-family: Arial;
+            text-align: center;
+            background-color: #f0f2f5;
+            padding: 30px;
+            margin: 0;
+        }
+        h1 {
+            margin-bottom: 30px;
+        }
         a {
             display: block;
-            margin: 10px auto;
+            margin: 15px auto;
             font-size: 1.2rem;
             color: white;
             background-color: #4CAF50;
             padding: 15px;
             width: 250px;
+            max-width: 90%;
             border-radius: 8px;
             text-decoration: none;
+            transition: background-color 0.2s ease;
         }
         a:hover {
             background-color: #45a049;
+        }
+        @media (max-width: 600px) {
+            a {
+                font-size: 1rem;
+                padding: 12px;
+                width: 80%;
+            }
+            h1 {
+                font-size: 1.5rem;
+            }
         }
     </style>
 </head>
@@ -26,9 +47,9 @@
 
     <h1>Project Hub</h1>
 
-    <a href="/ytlink/mainpage">🎥 YouTube Downloader</a>
-    <a href="/fileshare/upload">📁 Secure File Upload</a>
-    <a href="/fileshare/retrieve">⬇️ Retrieve Files</a>
+    <a href="/ytlink/mainpage.html">YouTube Downloader</a>
+    <a href="/fileshare/upload.html">Secure File Upload</a>
+    <a href="/fileshare/retrieve.html">Retrieve Files</a>
 
 </body>
 </html>
