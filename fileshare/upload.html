@@ -27,6 +27,31 @@
         }
         #status { font-weight: bold; margin-top: 20px; }
         a { display: block; margin-top: 20px; font-size: 1rem; }
+
+        /* Custom Warning Popup */
+        #warningPopup {
+            display: none;
+            position: fixed;
+            top: 30%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            border: 2px solid #f44336;
+            padding: 20px;
+            z-index: 1000;
+            border-radius: 10px;
+            font-weight: bold;
+            color: #f44336;
+        }
+        #warningPopup button {
+            margin-top: 10px;
+            font-size: 1rem;
+            padding: 8px 20px;
+            background-color: #f44336;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
@@ -49,18 +74,24 @@
 
     <a href="retrieve.html">Go to File Retrieval Page</a>
 
+    <!-- Warning Popup -->
+    <div id="warningPopup">
+        <div id="popupMessage"></div>
+        <button onclick="closePopup()">Cancel Upload</button>
+    </div>
+
     <script>
         const backendURL = 'https://filebackend-production.up.railway.app';
         const dropArea = document.getElementById('dropArea');
         const fileInput = document.getElementById('fileInput');
+        const warningPopup = document.getElementById('warningPopup');
+        const popupMessage = document.getElementById('popupMessage');
+
         let selectedFiles = [];
 
         dropArea.addEventListener('click', () => fileInput.click());
 
-        fileInput.addEventListener('change', (e) => {
-            selectedFiles = e.target.files;
-            dropArea.innerText = selectedFiles.length + " file(s) selected";
-        });
+        fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
 
         dropArea.addEventListener('dragover', (e) => {
             e.preventDefault();
@@ -74,15 +105,44 @@
         dropArea.addEventListener('drop', (e) => {
             e.preventDefault();
             dropArea.classList.remove('dragover');
-            selectedFiles = e.dataTransfer.files;
-            dropArea.innerText = selectedFiles.length + " file(s) selected";
+            handleFiles(e.dataTransfer.files);
         });
+
+        function handleFiles(files) {
+            selectedFiles = files;
+            let bigFileDetected = false;
+            let biggestFileSize = 0;
+
+            for (const file of selectedFiles) {
+                if (file.size > 50 * 1024 * 1024) { // 50MB
+                    bigFileDetected = true;
+                    biggestFileSize = file.size;
+                }
+            }
+
+            if (bigFileDetected) {
+                const sizeMB = (biggestFileSize / (1024 * 1024)).toFixed(2);
+                popupMessage.innerText = `Woah there, that’s a big file. (${sizeMB} MB)\nAre you sure you want to upload?`;
+                warningPopup.style.display = 'block';
+                return;
+            }
+
+            dropArea.innerText = selectedFiles.length + " file(s) selected";
+        }
+
+        function closePopup() {
+            selectedFiles = [];
+            warningPopup.style.display = 'none';
+            dropArea.innerText = 'Click or drag file(s) here to upload';
+        }
 
         async function upload() {
             if (selectedFiles.length === 0) {
                 document.getElementById('status').innerText = 'No files selected.';
                 return;
             }
+
+            warningPopup.style.display = 'none';
 
             const formData = new FormData();
             for (const file of selectedFiles) {
