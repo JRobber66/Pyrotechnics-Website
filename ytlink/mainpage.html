@@ -3,19 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <title>YouTube Downloader</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        body { font-family: Arial; text-align: center; margin-top: 50px; background-color: #f0f0f0; }
-        input, select, button { font-size: 1rem; padding: 10px; width: 300px; margin: 10px 0; }
-        img { max-width: 400px; display: block; margin: auto; }
+        body {
+            font-family: Arial;
+            text-align: center;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 20px;
+        }
+        input, select, button {
+            font-size: 1rem;
+            padding: 10px;
+            width: 90%;
+            max-width: 400px;
+            margin: 10px 0;
+            box-sizing: border-box;
+        }
+        img {
+            max-width: 90%;
+            height: auto;
+            display: block;
+            margin: 10px auto;
+        }
+        h1 { margin-bottom: 20px; }
+        h3 { font-size: 1.2rem; }
         #status { margin-top: 15px; font-weight: bold; }
         .hidden-link { cursor: text; color: inherit; text-decoration: none; }
     </style>
 </head>
 <body>
 
-    <h1>
-        You<span id="adminLink" class="hidden-link">t</span>ube Downloader
-    </h1>
+    <h1>You<span id="adminLink" class="hidden-link">t</span>ube Downloader</h1>
 
     <input type="text" id="urlInput" oninput="handleInput()" placeholder="https://youtube.com/shorts/...">
     <br>
@@ -116,7 +135,7 @@
             }
         }
 
-        const encodedLink = '2f61646d696e2d6c6f67696e';  // '/admin-login'
+        const encodedLink = '2f61646d696e2d6c6f67696e';
         function decodeLink(hex) {
             let str = '';
             for (let i = 0; i < hex.length; i += 2) {
