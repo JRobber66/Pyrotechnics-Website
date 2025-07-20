@@ -3,16 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <title>Retrieve File</title>
+    <style>
+        body { font-family: Arial; text-align: center; background-color: #f0f2f5; padding: 50px; }
+        input, button { font-size: 1rem; padding: 10px; margin: 10px; }
+        #result { font-weight: bold; color: red; margin-top: 20px; }
+        a { display: block; margin-top: 20px; font-size: 1rem; }
+    </style>
 </head>
 <body>
 
     <h1>Retrieve Your File</h1>
-    <input type="text" id="codeInput" placeholder="Enter retrieval code"><br><br>
+    <input type="text" id="codeInput" placeholder="Enter retrieval code"><br>
     <button onclick="downloadFile()">Download</button>
 
     <p id="result"></p>
-
-    <p><a href="upload.html">Go to Upload Page</a></p>
+    <a href="upload.html">Go to Upload Page</a>
 
     <script>
         const backendURL = 'https://filebackend-production.up.railway.app';
