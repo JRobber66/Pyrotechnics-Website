@@ -2,33 +2,96 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Upload Files</title>
+    <title>Secure File Upload</title>
     <style>
         body { font-family: Arial; text-align: center; background-color: #f0f2f5; padding: 50px; }
-        input, button { font-size: 1rem; padding: 10px; margin: 10px; }
-        label { font-size: 1rem; }
-        #result { font-weight: bold; color: green; margin-top: 20px; }
+        h1 { margin-bottom: 20px; }
+        .drop-area {
+            border: 2px dashed #4CAF50;
+            background-color: white;
+            padding: 50px;
+            width: 300px;
+            margin: 20px auto;
+            cursor: pointer;
+            border-radius: 10px;
+            color: #4CAF50;
+            font-weight: bold;
+        }
+        .drop-area.dragover {
+            background-color: #eaffea;
+        }
+        button, label {
+            font-size: 1rem;
+            padding: 10px;
+            margin: 10px;
+        }
+        #status { font-weight: bold; margin-top: 20px; }
         a { display: block; margin-top: 20px; font-size: 1rem; }
     </style>
 </head>
 <body>
 
     <h1>Secure File Upload</h1>
-    <form id="uploadForm">
-        <input type="file" name="files" multiple><br>
-        <label><input type="checkbox" id="deleteAfter"> Delete after download</label><br>
-        <button type="button" onclick="upload()">Upload</button>
-    </form>
 
+    <div class="drop-area" id="dropArea">
+        Click or drag file(s) here to upload
+    </div>
+
+    <input type="file" id="fileInput" multiple style="display:none;">
+
+    <br>
+    <label><input type="checkbox" id="deleteAfter"> Delete after download</label><br>
+
+    <button onclick="upload()">Upload</button>
+
+    <p id="status"></p>
     <p id="result"></p>
+
     <a href="retrieve.html">Go to File Retrieval Page</a>
 
     <script>
         const backendURL = 'https://filebackend-production.up.railway.app';
+        const dropArea = document.getElementById('dropArea');
+        const fileInput = document.getElementById('fileInput');
+        let selectedFiles = [];
+
+        dropArea.addEventListener('click', () => fileInput.click());
+
+        fileInput.addEventListener('change', (e) => {
+            selectedFiles = e.target.files;
+            dropArea.innerText = selectedFiles.length + " file(s) selected";
+        });
+
+        dropArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropArea.classList.add('dragover');
+        });
+
+        dropArea.addEventListener('dragleave', () => {
+            dropArea.classList.remove('dragover');
+        });
+
+        dropArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropArea.classList.remove('dragover');
+            selectedFiles = e.dataTransfer.files;
+            dropArea.innerText = selectedFiles.length + " file(s) selected";
+        });
 
         async function upload() {
-            const formData = new FormData(document.getElementById('uploadForm'));
+            if (selectedFiles.length === 0) {
+                document.getElementById('status').innerText = 'No files selected.';
+                return;
+            }
+
+            const formData = new FormData();
+            for (const file of selectedFiles) {
+                formData.append('files', file);
+            }
             formData.append('delete_after', document.getElementById('deleteAfter').checked ? 'true' : 'false');
+
+            document.getElementById('status').innerText = 'Uploading...';
+            document.getElementById('result').innerText = '';
 
             const response = await fetch(backendURL + '/upload', {
                 method: 'POST',
@@ -37,9 +100,10 @@
 
             const data = await response.json();
             if (data.code) {
+                document.getElementById('status').innerText = 'Done!';
                 document.getElementById('result').innerText = 'Your retrieval code: ' + data.code;
             } else {
-                document.getElementById('result').innerText = 'Upload failed.';
+                document.getElementById('status').innerText = 'Upload failed.';
             }
         }
     </script>
