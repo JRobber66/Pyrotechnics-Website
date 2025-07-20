@@ -2,20 +2,26 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Secure File Upload</title>
+    <title>Upload Files</title>
+    <style>
+        body { font-family: Arial; text-align: center; background-color: #f0f2f5; padding: 50px; }
+        input, button { font-size: 1rem; padding: 10px; margin: 10px; }
+        label { font-size: 1rem; }
+        #result { font-weight: bold; color: green; margin-top: 20px; }
+        a { display: block; margin-top: 20px; font-size: 1rem; }
+    </style>
 </head>
 <body>
 
-    <h1>Upload Files</h1>
+    <h1>Secure File Upload</h1>
     <form id="uploadForm">
-        <input type="file" name="files" multiple><br><br>
-        <label><input type="checkbox" id="deleteAfter"> Delete after download</label><br><br>
+        <input type="file" name="files" multiple><br>
+        <label><input type="checkbox" id="deleteAfter"> Delete after download</label><br>
         <button type="button" onclick="upload()">Upload</button>
     </form>
 
     <p id="result"></p>
-
-    <p><a href="retrieve.html">Go to File Retrieval Page</a></p>
+    <a href="retrieve.html">Go to File Retrieval Page</a>
 
     <script>
         const backendURL = 'https://filebackend-production.up.railway.app';
