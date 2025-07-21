@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Token-Based Video Chat</title>
+    <title>Video Chat Debug</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body { font-family: Arial; text-align: center; background-color: #f0f0f0; padding: 20px; }
@@ -13,7 +13,7 @@
 </head>
 <body>
 
-<h1>Live Video Chat</h1>
+<h1>Video Chat Debug Mode</h1>
 
 <button onclick="createSession()">Create Session</button>
 <p id="sessionTokenDisplay"></p>
@@ -34,10 +34,10 @@ let isCreator = false;
 const socket = io('wss://web-production-59907.up.railway.app');
 const config = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
 
-socket.on('connect', () => console.log('[Socket.IO] Connected'));
+socket.on('connect', () => console.log('[Socket.IO] Connected to signaling server.'));
 
 socket.on('joined', data => {
-    console.log('[Socket.IO] Joined:', data.message);
+    console.log('[Socket.IO] Joined session:', data.message);
     if (isCreator) {
         startConnection(true);
     } else {
@@ -46,19 +46,22 @@ socket.on('joined', data => {
 });
 
 socket.on('signal', async (message) => {
-    console.log('[Socket.IO] Signal received:', message.type);
+    console.log(`[Socket.IO] Signal received: ${message.type}`);
 
     if (message.type === 'offer') {
+        console.log('[Joiner] Offer received.');
         await peerConnection.setRemoteDescription(new RTCSessionDescription(message));
+        console.log('[Joiner] Offer applied.');
         const answer = await peerConnection.createAnswer();
         await peerConnection.setLocalDescription(answer);
         socket.emit('signal', { token: sessionToken, message: answer });
-        console.log('[WebRTC] Answer sent.');
+        console.log('[Joiner] Answer created and sent.');
     }
 
     if (message.type === 'answer') {
+        console.log('[Creator] Answer received.');
         await peerConnection.setRemoteDescription(new RTCSessionDescription(message));
-        console.log('[WebRTC] Answer applied.');
+        console.log('[Creator] Answer applied.');
     }
 
     if (message.type === 'candidate') {
@@ -87,7 +90,7 @@ function joinSession() {
     console.log('[Session] Joining session:', sessionToken);
 }
 
-async function startConnection(creatorRole) {
+async function startConnection(isCaller) {
     localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
     document.getElementById('localVideo').srcObject = localStream;
 
@@ -108,19 +111,17 @@ async function startConnection(creatorRole) {
 
     peerConnection.onicecandidate = event => {
         if (event.candidate) {
-            socket.emit('signal', {
-                token: sessionToken,
-                message: { type: 'candidate', candidate: event.candidate }
-            });
+            socket.emit('signal', { token: sessionToken, message: { type: 'candidate', candidate: event.candidate } });
             console.log('[WebRTC] ICE candidate sent.');
         }
     };
 
-    if (creatorRole) {
+    if (isCaller) {
+        console.log('[Creator] Creating offer.');
         const offer = await peerConnection.createOffer();
         await peerConnection.setLocalDescription(offer);
         socket.emit('signal', { token: sessionToken, message: offer });
-        console.log('[WebRTC] Offer sent.');
+        console.log('[Creator] Offer created and sent.');
     }
 }
 </script>
