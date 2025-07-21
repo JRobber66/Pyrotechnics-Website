@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Token-Based Video Chat</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { font-family: Arial; text-align: center; background-color: #f0f0f0; padding: 20px; }
+        video { width: 45%; margin: 10px; background-color: black; }
+        input, button { font-size: 1rem; padding: 10px; margin: 10px; width: 90%; max-width: 300px; }
+    </style>
+</head>
+<body>
+
+<h1>Live Video Chat</h1>
+
+<div id="sessionArea">
+    <button onclick="createSession()">Create Session</button>
+    <p id="sessionTokenDisplay" style="font-weight:bold;"></p>
+
+    <input type="text" id="joinToken" placeholder="Enter Session Token">
+    <button onclick="joinSession()">Join Session</button>
+</div>
+
+<video id="localVideo" autoplay muted playsinline></video>
+<video id="remoteVideo" autoplay playsinline></video>
+
+<script>
+let localStream;
+let remoteStream;
+let peerConnection;
+let sessionToken = '';
+
+const signalingServerURL = 'wss://your-backend-signaling-server-url';
+let socket;
+
+const peerConfig = {
+    iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+};
+
+async function startLocalStream() {
+    localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    document.getElementById('localVideo').srcObject = localStream;
+}
+
+function createSession() {
+    sessionToken = Math.random().toString(36).substr(2, 8).toUpperCase();
+    document.getElementById('sessionTokenDisplay').innerText = 'Session Token: ' + sessionToken;
+    connectToSignaling(sessionToken, true);
+}
+
+function joinSession() {
+    sessionToken = document.getElementById('joinToken').value.trim();
+    if (sessionToken.length < 4) {
+        alert('Invalid token.');
+        return;
+    }
+    document.getElementById('sessionTokenDisplay').innerText = 'Joined Session: ' + sessionToken;
+    connectToSignaling(sessionToken, false);
+}
+
+function connectToSignaling(token, isCreator) {
+    socket = new WebSocket(signalingServerURL);
+
+    socket.onopen = () => {
+        socket.send(JSON.stringify({ type: 'join', token }));
+        startLocalStream();
+        setupPeer();
+
+        if (isCreator) {
+            peerConnection.createOffer().then(offer => {
+                peerConnection.setLocalDescription(offer);
+                socket.send(JSON.stringify({ type: 'offer', token, data: offer }));
+            });
+        }
+    };
+
+    socket.onmessage = async (event) => {
+        const message = JSON.parse(event.data);
+
+        if (message.type === 'offer' && !isCreator) {
+            await peerConnection.setRemoteDescription(new RTCSessionDescription(message.data));
+            const answer = await peerConnection.createAnswer();
+            await peerConnection.setLocalDescription(answer);
+            socket.send(JSON.stringify({ type: 'answer', token, data: answer }));
+        }
+
+        if (message.type === 'answer' && isCreator) {
+            await peerConnection.setRemoteDescription(new RTCSessionDescription(message.data));
+        }
+
+        if (message.type === 'ice') {
+            try {
+                await peerConnection.addIceCandidate(message.data);
+            } catch {}
+        }
+    };
+}
+
+function setupPeer() {
+    peerConnection = new RTCPeerConnection(peerConfig);
+
+    localStream.getTracks().forEach(track => {
+        peerConnection.addTrack(track, localStream);
+    });
+
+    peerConnection.ontrack = event => {
+        if (!remoteStream) {
+            remoteStream = new MediaStream();
+            document.getElementById('remoteVideo').srcObject = remoteStream;
+        }
+        remoteStream.addTrack(event.track);
+    };
+
+    peerConnection.onicecandidate = event => {
+        if (event.candidate) {
+            socket.send(JSON.stringify({ type: 'ice', token: sessionToken, data: event.candidate }));
+        }
+    };
+}
+
+startLocalStream();
+</script>
+
+</body>
+</html>
