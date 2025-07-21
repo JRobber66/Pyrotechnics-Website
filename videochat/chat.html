@@ -9,6 +9,7 @@
         video { width: 45%; margin: 10px; background-color: black; }
         input, button { font-size: 1rem; padding: 10px; margin: 10px; width: 90%; max-width: 300px; }
     </style>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 </head>
 <body>
 
@@ -31,12 +32,25 @@ let remoteStream;
 let peerConnection;
 let sessionToken = '';
 
-const signalingServerURL = 'wss://your-backend-signaling-server-url';
-let socket;
+const socket = io('wss://web-production-59907.up.railway.app');
+const peerConfig = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
 
-const peerConfig = {
-    iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
-};
+socket.on('connect', () => console.log('[Socket.IO] Connected'));
+socket.on('joined', data => console.log(data.message));
+socket.on('signal', async (message) => {
+    if (message.type === 'offer') {
+        await peerConnection.setRemoteDescription(new RTCSessionDescription(message));
+        const answer = await peerConnection.createAnswer();
+        await peerConnection.setLocalDescription(answer);
+        socket.emit('signal', { token: sessionToken, message: answer });
+    }
+    if (message.type === 'answer') {
+        await peerConnection.setRemoteDescription(new RTCSessionDescription(message));
+    }
+    if (message.type === 'candidate') {
+        try { await peerConnection.addIceCandidate(message); } catch {}
+    }
+});
 
 async function startLocalStream() {
     localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
@@ -46,7 +60,7 @@ async function startLocalStream() {
 function createSession() {
     sessionToken = Math.random().toString(36).substr(2, 8).toUpperCase();
     document.getElementById('sessionTokenDisplay').innerText = 'Session Token: ' + sessionToken;
-    connectToSignaling(sessionToken, true);
+    joinSessionToken(true);
 }
 
 function joinSession() {
@@ -56,45 +70,20 @@ function joinSession() {
         return;
     }
     document.getElementById('sessionTokenDisplay').innerText = 'Joined Session: ' + sessionToken;
-    connectToSignaling(sessionToken, false);
+    joinSessionToken(false);
 }
 
-function connectToSignaling(token, isCreator) {
-    socket = new WebSocket(signalingServerURL);
+function joinSessionToken(isCreator) {
+    socket.emit('join', { token: sessionToken });
+    startLocalStream();
+    setupPeer();
 
-    socket.onopen = () => {
-        socket.send(JSON.stringify({ type: 'join', token }));
-        startLocalStream();
-        setupPeer();
-
-        if (isCreator) {
-            peerConnection.createOffer().then(offer => {
-                peerConnection.setLocalDescription(offer);
-                socket.send(JSON.stringify({ type: 'offer', token, data: offer }));
-            });
-        }
-    };
-
-    socket.onmessage = async (event) => {
-        const message = JSON.parse(event.data);
-
-        if (message.type === 'offer' && !isCreator) {
-            await peerConnection.setRemoteDescription(new RTCSessionDescription(message.data));
-            const answer = await peerConnection.createAnswer();
-            await peerConnection.setLocalDescription(answer);
-            socket.send(JSON.stringify({ type: 'answer', token, data: answer }));
-        }
-
-        if (message.type === 'answer' && isCreator) {
-            await peerConnection.setRemoteDescription(new RTCSessionDescription(message.data));
-        }
-
-        if (message.type === 'ice') {
-            try {
-                await peerConnection.addIceCandidate(message.data);
-            } catch {}
-        }
-    };
+    if (isCreator) {
+        peerConnection.createOffer().then(offer => {
+            peerConnection.setLocalDescription(offer);
+            socket.emit('signal', { token: sessionToken, message: offer });
+        });
+    }
 }
 
 function setupPeer() {
@@ -114,7 +103,7 @@ function setupPeer() {
 
     peerConnection.onicecandidate = event => {
         if (event.candidate) {
-            socket.send(JSON.stringify({ type: 'ice', token: sessionToken, data: event.candidate }));
+            socket.emit('signal', { token: sessionToken, message: { type: 'candidate', candidate: event.candidate } });
         }
     };
 }
@@ -124,3 +113,4 @@ startLocalStream();
 
 </body>
 </html>
+
