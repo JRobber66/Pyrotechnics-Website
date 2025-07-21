@@ -15,13 +15,11 @@
 
 <h1>Live Video Chat</h1>
 
-<div id="sessionArea">
-    <button onclick="createSession()">Create Session</button>
-    <p id="sessionTokenDisplay" style="font-weight:bold;"></p>
+<button onclick="createSession()">Create Session</button>
+<p id="sessionTokenDisplay"></p>
 
-    <input type="text" id="joinToken" placeholder="Enter Session Token">
-    <button onclick="joinSession()">Join Session</button>
-</div>
+<input type="text" id="joinToken" placeholder="Enter Session Token">
+<button onclick="joinSession()">Join Session</button>
 
 <video id="localVideo" autoplay muted playsinline></video>
 <video id="remoteVideo" autoplay playsinline></video>
@@ -31,63 +29,69 @@ let localStream;
 let remoteStream;
 let peerConnection;
 let sessionToken = '';
+let isCreator = false;
 
 const socket = io('wss://web-production-59907.up.railway.app');
-const peerConfig = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
+const config = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
 
 socket.on('connect', () => console.log('[Socket.IO] Connected'));
-socket.on('joined', data => console.log(data.message));
+
+socket.on('joined', data => {
+    console.log('[Socket.IO] Joined:', data.message);
+    if (isCreator) {
+        startConnection(true);
+    } else {
+        startConnection(false);
+    }
+});
+
 socket.on('signal', async (message) => {
+    console.log('[Socket.IO] Signal received:', message.type);
+
     if (message.type === 'offer') {
         await peerConnection.setRemoteDescription(new RTCSessionDescription(message));
         const answer = await peerConnection.createAnswer();
         await peerConnection.setLocalDescription(answer);
         socket.emit('signal', { token: sessionToken, message: answer });
+        console.log('[WebRTC] Answer sent.');
     }
+
     if (message.type === 'answer') {
         await peerConnection.setRemoteDescription(new RTCSessionDescription(message));
+        console.log('[WebRTC] Answer applied.');
     }
+
     if (message.type === 'candidate') {
-        try { await peerConnection.addIceCandidate(message); } catch {}
+        await peerConnection.addIceCandidate(message);
+        console.log('[WebRTC] ICE candidate added.');
     }
 });
 
-async function startLocalStream() {
-    localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-    document.getElementById('localVideo').srcObject = localStream;
-}
-
 function createSession() {
     sessionToken = Math.random().toString(36).substr(2, 8).toUpperCase();
+    isCreator = true;
     document.getElementById('sessionTokenDisplay').innerText = 'Session Token: ' + sessionToken;
-    joinSessionToken(true);
+    socket.emit('join', { token: sessionToken });
+    console.log('[Session] Created session:', sessionToken);
 }
 
 function joinSession() {
     sessionToken = document.getElementById('joinToken').value.trim();
-    if (sessionToken.length < 4) {
+    if (!sessionToken) {
         alert('Invalid token.');
         return;
     }
+    isCreator = false;
     document.getElementById('sessionTokenDisplay').innerText = 'Joined Session: ' + sessionToken;
-    joinSessionToken(false);
-}
-
-function joinSessionToken(isCreator) {
     socket.emit('join', { token: sessionToken });
-    startLocalStream();
-    setupPeer();
-
-    if (isCreator) {
-        peerConnection.createOffer().then(offer => {
-            peerConnection.setLocalDescription(offer);
-            socket.emit('signal', { token: sessionToken, message: offer });
-        });
-    }
+    console.log('[Session] Joining session:', sessionToken);
 }
 
-function setupPeer() {
-    peerConnection = new RTCPeerConnection(peerConfig);
+async function startConnection(creatorRole) {
+    localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    document.getElementById('localVideo').srcObject = localStream;
+
+    peerConnection = new RTCPeerConnection(config);
 
     localStream.getTracks().forEach(track => {
         peerConnection.addTrack(track, localStream);
@@ -99,18 +103,27 @@ function setupPeer() {
             document.getElementById('remoteVideo').srcObject = remoteStream;
         }
         remoteStream.addTrack(event.track);
+        console.log('[WebRTC] Remote track received.');
     };
 
     peerConnection.onicecandidate = event => {
         if (event.candidate) {
-            socket.emit('signal', { token: sessionToken, message: { type: 'candidate', candidate: event.candidate } });
+            socket.emit('signal', {
+                token: sessionToken,
+                message: { type: 'candidate', candidate: event.candidate }
+            });
+            console.log('[WebRTC] ICE candidate sent.');
         }
     };
-}
 
-startLocalStream();
+    if (creatorRole) {
+        const offer = await peerConnection.createOffer();
+        await peerConnection.setLocalDescription(offer);
+        socket.emit('signal', { token: sessionToken, message: offer });
+        console.log('[WebRTC] Offer sent.');
+    }
+}
 </script>
 
 </body>
 </html>
-
