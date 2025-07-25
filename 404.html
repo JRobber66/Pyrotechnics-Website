@@ -1,19 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Redirecting...</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding: 2em;
+      background-color: #f9f9f9;
+      color: #333;
+    }
+    .box {
+      max-width: 500px;
+      margin: 3em auto;
+      padding: 2em;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      box-shadow: 0 0 12px rgba(0,0,0,0.05);
+    }
+  </style>
   <script>
     window.onload = () => {
       const path = window.location.pathname;
       const parts = path.split('/');
       const code = parts[parts.length - 1];
 
-      // Check if it looks like a valid code
       const isValid = /^[A-Za-z0-9]{8}$/.test(code);
 
       if (isValid) {
-        window.location.href = `https://filebackend-production.up.railway.app/download/${code}`;
+        window.location.href = `https://filebackend-production.up.railway.app/retrieve/${code}`;
       } else {
         window.location.href = 'https://datatesthub.com/';
       }
@@ -21,6 +39,9 @@
   </script>
 </head>
 <body>
-  <h2>⏳ Redirecting...</h2>
+  <div class="box">
+    <h2>⏳ Redirecting...</h2>
+    <p>If you're not redirected, <a href="https://datatesthub.com/">click here</a>.</p>
+  </div>
 </body>
 </html>
