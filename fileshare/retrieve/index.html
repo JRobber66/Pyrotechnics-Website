@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Redirecting...</title>
+  <script>
+    window.onload = () => {
+      const path = window.location.pathname;
+      const parts = path.split('/');
+      const code = parts[parts.length - 1];
+
+      // Check for 8-character alphanumeric code
+      const isValid = /^[A-Za-z0-9]{8}$/.test(code);
+
+      if (isValid) {
+        const redirectUrl = `https://filebackend-production.up.railway.app/download/${code}`;
+        window.location.href = redirectUrl;
+      } else {
+        // If code is missing or invalid, redirect to main index
+        window.location.href = 'https://datatesthub.com/';
+      }
+    };
+  </script>
+</head>
+<body>
+  <h2>⏳ Redirecting...</h2>
+</body>
+</html>
