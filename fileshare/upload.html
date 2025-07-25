@@ -275,7 +275,7 @@ function copyCode() {
 
 function copyLink() {
     const code = document.getElementById('result').innerText.replace('Your retrieval code: ', '').trim();
-    const fullLink = `${datatesthub.com/fileshare/retrieve/${code}`;
+    const fullLink = `$https://datatesthub.com/fileshare/retrieve/${code}`;
     navigator.clipboard.writeText(fullLink);
     alert('Link copied to clipboard!');
 }
