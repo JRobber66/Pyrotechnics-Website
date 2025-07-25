@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Redirecting...</title>
+  <script>
+    window.onload = () => {
+      const path = window.location.pathname;
+      const parts = path.split('/');
+      const code = parts[parts.length - 1];
+
+      // Check if it looks like a valid code
+      const isValid = /^[A-Za-z0-9]{8}$/.test(code);
+
+      if (isValid) {
+        window.location.href = `https://filebackend-production.up.railway.app/download/${code}`;
+      } else {
+        window.location.href = 'https://datatesthub.com/';
+      }
+    };
+  </script>
+</head>
+<body>
+  <h2>⏳ Redirecting...</h2>
+</body>
+</html>
