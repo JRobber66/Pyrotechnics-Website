@@ -99,6 +99,7 @@
 <div id="resultSection" style="display:none;">
     <p id="result"></p>
     <button onclick="copyCode()">Copy Code</button>
+    <button onclick="copyLink()">Copy Link</button>
 </div>
 
 <div id="progressContainer">
@@ -270,6 +271,13 @@ function copyCode() {
     const text = document.getElementById('result').innerText.replace('Your retrieval code: ', '').trim();
     navigator.clipboard.writeText(text);
     alert('Code copied to clipboard!');
+}
+
+function copyLink() {
+    const code = document.getElementById('result').innerText.replace('Your retrieval code: ', '').trim();
+    const fullLink = `${backendURL}/retrieve/${code}`;
+    navigator.clipboard.writeText(fullLink);
+    alert('Link copied to clipboard!');
 }
 </script>
 
