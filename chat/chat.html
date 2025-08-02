@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Chat Assistant</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f5f7fa;
+      margin: 0;
+      padding: 2em;
+    }
+    h2 {
+      text-align: center;
+    }
+    #chatbox {
+      max-width: 700px;
+      margin: 20px auto;
+      background: white;
+      border-radius: 8px;
+      padding: 1em;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      overflow-y: auto;
+      max-height: 60vh;
+    }
+    .bubble {
+      padding: 0.6em 1em;
+      margin: 0.5em 0;
+      border-radius: 1em;
+      max-width: 80%;
+      line-height: 1.4;
+    }
+    .user {
+      background: #d0e7ff;
+      margin-left: auto;
+      text-align: right;
+    }
+    .bot {
+      background: #eeeeee;
+      margin-right: auto;
+    }
+    #inputArea {
+      display: flex;
+      max-width: 700px;
+      margin: 20px auto;
+    }
+    #inputArea input {
+      flex: 1;
+      font-size: 1rem;
+      padding: 10px;
+    }
+    #inputArea button {
+      font-size: 1rem;
+      padding: 10px 15px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Virtual Assistant</h2>
+  <div id="chatbox"></div>
+
+  <div id="inputArea">
+    <input id="userInput" placeholder="Type a message..." />
+    <button onclick="send()">Send</button>
+  </div>
+
+  <script>
+    const backendURL = 'https://your-backend-url/chat'; // Replace with your backend
+
+    function addBubble(text, isUser) {
+      const div = document.createElement('div');
+      div.className = 'bubble ' + (isUser ? 'user' : 'bot');
+      div.textContent = text;
+      document.getElementById('chatbox').appendChild(div);
+      document.getElementById('chatbox').scrollTop = document.getElementById('chatbox').scrollHeight;
+    }
+
+    function send() {
+      const input = document.getElementById('userInput');
+      const message = input.value.trim();
+      if (!message) return;
+
+      addBubble(message, true);
+      input.value = '';
+
+      fetch(backendURL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: message })
+      })
+      .then(res => res.json())
+      .then(data => addBubble(data.response || data.error || '[No response]', false))
+      .catch(() => addBubble('⚠️ Could not reach assistant.', false));
+    }
+  </script>
+</body>
+</html>
