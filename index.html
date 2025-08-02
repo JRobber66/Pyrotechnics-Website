@@ -1,55 +1,75 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Project Hub</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        body {
-            font-family: Arial;
-            text-align: center;
-            background-color: #f0f2f5;
-            padding: 30px;
-            margin: 0;
-        }
-        h1 {
-            margin-bottom: 30px;
-        }
-        a {
-            display: block;
-            margin: 15px auto;
-            font-size: 1.2rem;
-            color: white;
-            background-color: #4CAF50;
-            padding: 15px;
-            width: 250px;
-            max-width: 90%;
-            border-radius: 8px;
-            text-decoration: none;
-            transition: background-color 0.2s ease;
-        }
-        a:hover {
-            background-color: #45a049;
-        }
-        @media (max-width: 600px) {
-            a {
-                font-size: 1rem;
-                padding: 12px;
-                width: 80%;
-            }
-            h1 {
-                font-size: 1.5rem;
-            }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DataTestHub Tools</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f4f4f4;
+      margin: 0;
+      padding: 2em;
+      text-align: center;
+    }
+    h1 {
+      margin-bottom: 1em;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+      max-width: 400px;
+      margin: auto;
+    }
+    li {
+      background: white;
+      margin: 0.5em 0;
+      padding: 1em;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    a {
+      text-decoration: none;
+      color: #0077cc;
+      font-weight: bold;
+    }
+    .hidden {
+      display: none;
+    }
+  </style>
 </head>
 <body>
+  <h1>Welcome to DataTestHub</h1>
+  <ul>
+    <li><a href="/ytlink/mainpage">YouTube Downloader</a></li>
+    <li><a href="/fileshare/upload.html">Secure File Upload</a></li>
+    <li class="hidden" id="chatLink"><a href="/chat/chat.html">AI Assistant Chat</a></li>
+  </ul>
 
-    <h1>Project Hub</h1>
+  <script>
+    function setCookie(name, value, days) {
+      const expires = new Date(Date.now() + days * 864e5).toUTCString();
+      document.cookie = `${name}=${value}; expires=${expires}; path=/`;
+    }
 
-    <a href="/ytlink/mainpage.html">YouTube Downloader</a>
-    <a href="/fileshare/upload.html">Secure File Upload</a>
-    <a href="/fileshare/retrieve.html">Retrieve Files</a>
+    function getCookie(name) {
+      return document.cookie.split('; ').find(row => row.startsWith(name + '='))?.split('=')[1];
+    }
 
+    const chatLink = document.getElementById('chatLink');
+
+    // Show if cookie is present
+    if (getCookie("chatVisible") === "true") {
+      chatLink.classList.remove('hidden');
+    }
+
+    // Toggle visibility and set cookie if using shortcut
+    document.addEventListener('keydown', (e) => {
+      if (e.ctrlKey && e.altKey && e.code === 'KeyC') {
+        chatLink.classList.remove('hidden');
+        setCookie("chatVisible", "true", 365);
+      }
+    });
+  </script>
 </body>
 </html>
