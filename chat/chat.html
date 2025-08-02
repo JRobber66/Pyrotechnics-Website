@@ -11,9 +11,11 @@
       margin: 0;
       padding: 2em;
     }
+
     h2 {
       text-align: center;
     }
+
     #chatbox {
       max-width: 700px;
       margin: 20px auto;
@@ -22,40 +24,59 @@
       padding: 1em;
       box-shadow: 0 2px 10px rgba(0,0,0,0.05);
       overflow-y: auto;
-      max-height: 60vh;
+      max-height: 65vh;
     }
+
+    .bubble-wrapper {
+      display: flex;
+      justify-content: flex-start;
+      margin: 0.3em 0;
+    }
+
+    .bubble-wrapper.user {
+      justify-content: flex-end;
+    }
+
     .bubble {
       display: inline-block;
       padding: 0.6em 1em;
-      margin: 0.5em 0;
       border-radius: 1em;
       max-width: 80%;
-      line-height: 1.4;
       word-wrap: break-word;
       word-break: break-word;
+      line-height: 1.4;
     }
-    .user {
+
+    .bubble.user {
       background: #d0e7ff;
-      margin-left: auto;
       text-align: right;
     }
-    .bot {
+
+    .bubble.bot {
       background: #eeeeee;
-      margin-right: auto;
+      text-align: left;
     }
+
     #inputArea {
       display: flex;
       max-width: 700px;
       margin: 20px auto;
     }
-    #inputArea input {
+
+    #userInput {
       flex: 1;
       font-size: 1rem;
       padding: 10px;
+      resize: none;
+      height: 2.5em;
+      border: 1px solid #ccc;
+      border-radius: 4px;
     }
+
     #inputArea button {
       font-size: 1rem;
       padding: 10px 15px;
+      margin-left: 10px;
     }
   </style>
 </head>
@@ -64,7 +85,7 @@
   <div id="chatbox"></div>
 
   <div id="inputArea">
-    <input id="userInput" placeholder="Type a message..." />
+    <textarea id="userInput" placeholder="Type a message..." rows="1"></textarea>
     <button onclick="send()">Send</button>
   </div>
 
@@ -72,10 +93,15 @@
     const backendURL = 'https://chatbot-production-bee0.up.railway.app/chat';
 
     function addBubble(text, isUser) {
-      const div = document.createElement('div');
-      div.className = 'bubble ' + (isUser ? 'user' : 'bot');
-      div.textContent = text;
-      document.getElementById('chatbox').appendChild(div);
+      const wrapper = document.createElement('div');
+      wrapper.className = 'bubble-wrapper ' + (isUser ? 'user' : 'bot');
+
+      const bubble = document.createElement('div');
+      bubble.className = 'bubble ' + (isUser ? 'user' : 'bot');
+      bubble.textContent = text;
+
+      wrapper.appendChild(bubble);
+      document.getElementById('chatbox').appendChild(wrapper);
       document.getElementById('chatbox').scrollTop = document.getElementById('chatbox').scrollHeight;
     }
 
@@ -96,6 +122,15 @@
       .then(data => addBubble(data.response || data.error || '[No response]', false))
       .catch(() => addBubble('⚠️ Could not reach assistant.', false));
     }
+
+    document.getElementById('userInput').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        if (!e.shiftKey) {
+          e.preventDefault();
+          send();
+        }
+      }
+    });
   </script>
 </body>
 </html>
