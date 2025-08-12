@@ -1,285 +1,150 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Secure File Upload</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        body {
-            font-family: Arial;
-            background-color: #f0f2f5;
-            text-align: center;
-            padding: 30px;
-            margin: 0;
-        }
-        h1 { margin-bottom: 20px; }
-        .drop-area {
-            border: 2px dashed #4CAF50;
-            background-color: white;
-            padding: 40px;
-            max-width: 400px;
-            margin: 20px auto;
-            cursor: pointer;
-            border-radius: 10px;
-            color: #4CAF50;
-            font-weight: bold;
-        }
-        .drop-area.dragover { background-color: #eaffea; }
-        button, label, input[type="text"] {
-            font-size: 1rem;
-            padding: 10px;
-            margin: 10px;
-            max-width: 90%;
-        }
-        #progressContainer { display: none; margin-top: 20px; }
-        #progressBar {
-            width: 80%;
-            height: 20px;
-            background-color: #ddd;
-            margin: 0 auto;
-            border-radius: 10px;
-            overflow: hidden;
-        }
-        #progressFill {
-            height: 100%;
-            background-color: #4CAF50;
-            width: 0%;
-        }
-        #eta { font-size: 0.9rem; margin-top: 5px; }
-        #warningPopup {
-            display: none;
-            position: fixed;
-            top: 30%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: white;
-            border: 2px solid #f44336;
-            padding: 20px;
-            z-index: 1000;
-            border-radius: 10px;
-            font-weight: bold;
-            color: #f44336;
-        }
-        #warningPopup button {
-            margin: 10px;
-            font-size: 1rem;
-            padding: 8px 20px;
-            background-color: #f44336;
-            color: white;
-            border: none;
-            border-radius: 5px;
-        }
-        a { display: block; margin-top: 20px; font-size: 1rem; }
-        @media (max-width: 600px) {
-            .drop-area { padding: 30px; font-size: 1rem; }
-            h1 { font-size: 1.5rem; }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>Secure File Upload</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: system-ui, Arial; background:#f5f7fa; margin:0; }
+    .wrap { max-width: 700px; margin: 0 auto; padding: 28px; }
+    h1 { margin: 0 0 10px; }
+    .card { background:#fff; border:1px solid #e7e7e7; border-radius:12px; padding:20px; box-shadow:0 1px 6px rgba(0,0,0,0.05); }
+    .drop { border:2px dashed #1f7ae0; color:#1f7ae0; padding:30px; text-align:center; border-radius:12px; cursor:pointer; }
+    .drop.dragover { background:#f0f7ff; }
+    .row { margin-top:12px; display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+    button, .btn { border:1px solid #ccc; background:#fafafa; padding:10px 14px; border-radius:8px; cursor:pointer; }
+    .btn.primary, button.primary { background:#1f7ae0; color:#fff; border:none; }
+    #progress { display:none; margin-top:14px; }
+    .bar { height:10px; background:#e7e7e7; border-radius:999px; overflow:hidden; }
+    .fill { height:100%; width:0; background:#1f7ae0; }
+    .muted { color:#666; }
+  </style>
 </head>
 <body>
+  <div class="wrap">
+    <h1>Secure File Upload</h1>
+    <div class="card">
+      <div id="drop" class="drop">Click or drag file(s) here</div>
+      <input id="pick" type="file" multiple style="display:none;" />
+      <div class="row">
+        <label><input type="checkbox" id="del"> Delete after download</label>
+      </div>
+      <div id="largeGate" class="row" style="display:none;">
+        <input id="secret" placeholder="Enter secret code for ≥1GB uploads" />
+      </div>
+      <div class="row">
+        <button class="primary" id="go">Upload</button>
+        <a href="retrieve.html" class="btn">Go to Retrieval</a>
+      </div>
 
-<h1>Secure File Upload</h1>
+      <div id="status" class="row muted"></div>
 
-<div class="drop-area" id="dropArea">
-    Click or drag file(s) here to upload
-</div>
+      <div id="progress">
+        <div class="bar"><div class="fill" id="fill"></div></div>
+        <div class="muted" id="eta" style="margin-top:6px;"></div>
+      </div>
 
-<input type="file" id="fileInput" multiple style="display:none;">
-<br>
-<label><input type="checkbox" id="deleteAfter"> Delete after download</label><br>
+      <div id="done" class="row" style="display:none;">
+        <div id="codeText" class="muted"></div>
+        <button id="copyCode">Copy Code</button>
+        <button id="copyLink">Copy Link</button>
+      </div>
+    </div>
+  </div>
 
-<div id="secretCodeSection" style="display:none;">
-    <input type="text" id="secretCodeInput" placeholder="Enter secret code for large file upload">
-</div>
+  <script>
+    const BACKEND = 'https://filebackend-production.up.railway.app';
+    const SECRET_CODE = 'f9JwZ7lXp2';
 
-<button onclick="prepareUpload()">Upload</button>
+    const drop = document.getElementById('drop');
+    const pick = document.getElementById('pick');
+    const del = document.getElementById('del');
+    const largeGate = document.getElementById('largeGate');
+    const secret = document.getElementById('secret');
 
-<p id="status"></p>
+    const status = document.getElementById('status');
+    const progress = document.getElementById('progress');
+    const fill = document.getElementById('fill');
+    const eta = document.getElementById('eta');
 
-<div id="resultSection" style="display:none;">
-    <p id="result"></p>
-    <button onclick="copyCode()">Copy Code</button>
-    <button onclick="copyLink()">Copy Link</button>
-</div>
+    const done = document.getElementById('done');
+    const codeText = document.getElementById('codeText');
 
-<div id="progressContainer">
-    <div id="progressBar"><div id="progressFill"></div></div>
-    <div id="eta"></div>
-</div>
+    let files = [];
+    let total = 0;
 
-<a href="retrieve.html">Go to File Retrieval Page</a>
+    drop.addEventListener('click', () => pick.click());
+    pick.addEventListener('change', e => handle(e.target.files));
+    drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('dragover'); });
+    drop.addEventListener('dragleave', () => drop.classList.remove('dragover'));
+    drop.addEventListener('drop', e => { e.preventDefault(); drop.classList.remove('dragover'); handle(e.dataTransfer.files); });
 
-<div id="warningPopup">
-    <div id="popupMessage"></div>
-    <button onclick="cancelLargeUpload()">Cancel</button>
-    <button onclick="confirmLargeUpload()">Yes, Upload</button>
-</div>
-
-<script>
-const backendURL = 'https://filebackend-production.up.railway.app';
-const secretCode = 'f9JwZ7lXp2';
-const dropArea = document.getElementById('dropArea');
-const fileInput = document.getElementById('fileInput');
-const warningPopup = document.getElementById('warningPopup');
-const popupMessage = document.getElementById('popupMessage');
-const progressContainer = document.getElementById('progressContainer');
-const progressFill = document.getElementById('progressFill');
-const etaDisplay = document.getElementById('eta');
-const secretCodeSection = document.getElementById('secretCodeSection');
-const secretCodeInput = document.getElementById('secretCodeInput');
-
-let selectedFiles = [];
-let totalSize = 0;
-let uploadingLarge = false;
-
-dropArea.addEventListener('click', () => fileInput.click());
-fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
-dropArea.addEventListener('dragover', (e) => { e.preventDefault(); dropArea.classList.add('dragover'); });
-dropArea.addEventListener('dragleave', () => dropArea.classList.remove('dragover'));
-dropArea.addEventListener('drop', (e) => {
-    e.preventDefault();
-    dropArea.classList.remove('dragover');
-    handleFiles(e.dataTransfer.files);
-});
-
-function handleFiles(files) {
-    selectedFiles = files;
-    totalSize = 0;
-    for (const file of selectedFiles) {
-        totalSize += file.size;
-    }
-    dropArea.innerText = selectedFiles.length + " file(s) selected";
-
-    if (totalSize >= 1024 * 1024 * 1024) {
-        secretCodeSection.style.display = 'block';
-    } else {
-        secretCodeSection.style.display = 'none';
-    }
-}
-
-function prepareUpload() {
-    if (selectedFiles.length === 0) {
-        document.getElementById('status').innerText = 'No files selected.';
-        return;
+    function handle(list) {
+      files = Array.from(list || []);
+      total = files.reduce((s,f)=>s+f.size,0);
+      drop.textContent = `${files.length} file(s) selected`;
+      largeGate.style.display = total >= 1024*1024*1024 ? 'flex' : 'none';
     }
 
-    if (totalSize >= 1024 * 1024 * 1024) {
-        if (secretCodeInput.value.trim() !== secretCode) {
-            document.getElementById('status').innerText = 'Secret code required for large file upload.';
-            return;
-        }
-    }
-
-    if (totalSize > 50 * 1024 * 1024) {
-        const sizeMB = (totalSize / (1024 * 1024)).toFixed(2);
-        popupMessage.innerText = `Woah there, that’s a big upload. (${sizeMB} MB)\nAre you sure you want to upload?`;
-        warningPopup.style.display = 'block';
-        uploadingLarge = true;
-    } else {
-        uploadingLarge = false;
-        uploadSmall();
-    }
-}
-
-function cancelLargeUpload() {
-    warningPopup.style.display = 'none';
-    selectedFiles = [];
-    dropArea.innerText = 'Click or drag file(s) here to upload';
-}
-
-function confirmLargeUpload() {
-    warningPopup.style.display = 'none';
-    uploadLarge();
-}
-
-function uploadSmall() {
-    document.getElementById('status').innerText = 'Uploading...';
-    document.getElementById('resultSection').style.display = 'none';
-
-    const formData = new FormData();
-    for (const file of selectedFiles) {
-        formData.append('files', file);
-    }
-    formData.append('delete_after', document.getElementById('deleteAfter').checked ? 'true' : 'false');
-
-    fetch(backendURL + '/upload', {
-        method: 'POST',
-        body: formData
-    }).then(res => res.json())
-    .then(data => {
-        document.getElementById('status').innerText = 'Done!';
-        document.getElementById('result').innerText = 'Your retrieval code: ' + data.code;
-        document.getElementById('resultSection').style.display = 'block';
-    }).catch(() => {
-        document.getElementById('status').innerText = 'Upload failed.';
+    document.getElementById('go').addEventListener('click', () => {
+      if (!files.length) { status.textContent = 'No files selected.'; return; }
+      if (total >= 1024*1024*1024 && secret.value.trim() !== SECRET_CODE) {
+        status.textContent = 'Secret code required for ≥1GB uploads.'; return;
+      }
+      if (total > 50*1024*1024) uploadLarge(); else uploadSmall();
     });
-}
 
-function uploadLarge() {
-    const formData = new FormData();
-    for (const file of selectedFiles) {
-        formData.append('files', file);
+    function uploadSmall() {
+      status.textContent = 'Uploading…';
+      done.style.display = 'none';
+      const fd = new FormData();
+      files.forEach(f=>fd.append('files', f));
+      fd.append('delete_after', del.checked ? 'true' : 'false');
+      fetch(`${BACKEND}/upload`, { method:'POST', body:fd })
+        .then(r=>r.json()).then(showResult).catch(()=>status.textContent='Upload failed.');
     }
-    formData.append('delete_after', document.getElementById('deleteAfter').checked ? 'true' : 'false');
 
-    const xhr = new XMLHttpRequest();
-    xhr.open('POST', backendURL + '/upload', true);
+    function uploadLarge() {
+      const fd = new FormData();
+      files.forEach(f=>fd.append('files', f));
+      fd.append('delete_after', del.checked ? 'true' : 'false');
 
-    document.getElementById('status').innerText = 'Uploading large file(s)...';
-    document.getElementById('resultSection').style.display = 'none';
-    progressContainer.style.display = 'block';
-    progressFill.style.width = '0%';
-    etaDisplay.innerText = '';
+      status.textContent = 'Uploading…';
+      progress.style.display = 'block';
+      fill.style.width = '0%'; eta.textContent = '';
 
-    let startTime = Date.now();
+      let start = Date.now();
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', `${BACKEND}/upload`);
+      xhr.upload.onprogress = (e)=>{
+        if (!e.lengthComputable) return;
+        const pct = e.loaded/e.total*100;
+        fill.style.width = pct.toFixed(2)+'%';
+        const elapsed = (Date.now()-start)/1000;
+        const speed = e.loaded/elapsed;
+        const remain = e.total - e.loaded;
+        eta.textContent = `ETA: ${Math.ceil(remain/speed)}s`;
+      };
+      xhr.onload = ()=>{
+        progress.style.display='none';
+        if (xhr.status===200) showResult(JSON.parse(xhr.responseText));
+        else status.textContent='Upload failed.';
+      };
+      xhr.onerror = ()=>{
+        progress.style.display='none';
+        status.textContent='Upload failed.';
+      };
+      xhr.send(fd);
+    }
 
-    xhr.upload.onprogress = function(event) {
-        if (event.lengthComputable) {
-            const percent = (event.loaded / event.total) * 100;
-            progressFill.style.width = percent.toFixed(2) + '%';
-
-            const elapsed = (Date.now() - startTime) / 1000;
-            const speed = event.loaded / elapsed;
-            const remainingBytes = event.total - event.loaded;
-            const eta = remainingBytes / speed;
-
-            etaDisplay.innerText = `ETA: ${Math.ceil(eta)} seconds remaining`;
-        }
-    };
-
-    xhr.onload = function() {
-        progressContainer.style.display = 'none';
-        if (xhr.status === 200) {
-            const data = JSON.parse(xhr.responseText);
-            document.getElementById('status').innerText = 'Done!';
-            document.getElementById('result').innerText = 'Your retrieval code: ' + data.code;
-            document.getElementById('resultSection').style.display = 'block';
-        } else {
-            document.getElementById('status').innerText = 'Upload failed.';
-        }
-    };
-
-    xhr.onerror = function() {
-        progressContainer.style.display = 'none';
-        document.getElementById('status').innerText = 'Upload failed.';
-    };
-
-    xhr.send(formData);
-}
-
-function copyCode() {
-    const text = document.getElementById('result').innerText.replace('Your retrieval code: ', '').trim();
-    navigator.clipboard.writeText(text);
-    alert('Code copied to clipboard!');
-}
-
-function copyLink() {
-    const code = document.getElementById('result').innerText.replace('Your retrieval code: ', '').trim();
-    const fullLink = `https://datatesthub.com/fileshare/retrieve/${code}`;
-    navigator.clipboard.writeText(fullLink);
-    alert('Link copied to clipboard!');
-}
-</script>
-
+    function showResult(data){
+      status.textContent = 'Done!';
+      done.style.display='flex';
+      codeText.textContent = `Code: ${data.code}`;
+      const link = `${location.origin}/fileshare/retrieve.html?code=${encodeURIComponent(data.code)}`;
+      document.getElementById('copyCode').onclick = ()=>{ navigator.clipboard.writeText(data.code); alert('Code copied'); };
+      document.getElementById('copyLink').onclick = ()=>{ navigator.clipboard.writeText(link); alert('Link copied'); };
+    }
+  </script>
 </body>
 </html>
