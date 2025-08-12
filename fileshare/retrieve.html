@@ -1,71 +1,165 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Retrieve File</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        body {
-            font-family: Arial;
-            text-align: center;
-            background-color: #f0f2f5;
-            padding: 30px;
-            margin: 0;
-        }
-        h1 { margin-bottom: 20px; }
-        input[type="text"] {
-            font-size: 1rem;
-            padding: 10px;
-            width: 250px;
-            max-width: 90%;
-        }
-        button {
-            font-size: 1rem;
-            padding: 10px;
-            margin: 10px;
-        }
-        #result { font-weight: bold; margin-top: 20px; color: red; }
-        a { display: block; margin-top: 20px; font-size: 1rem; }
-        @media (max-width: 600px) {
-            input[type="text"] { font-size: 1rem; width: 80%; }
-            h1 { font-size: 1.5rem; }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>Retrieve Files</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: system-ui, Arial; margin:0; background:#f5f7fa; color:#222; }
+    .wrap { max-width: 900px; margin: 0 auto; padding: 24px; }
+    h1 { margin: 0 0 12px; }
+    .card { background:#fff; border:1px solid #e7e7e7; border-radius:12px; padding:18px; box-shadow:0 1px 6px rgba(0,0,0,0.05); }
+    .meta { display:flex; gap:18px; flex-wrap:wrap; margin-bottom:14px; color:#555; }
+    .file-list { margin-top:12px; }
+    .file-item { display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid #eee; }
+    .file-name { font-weight:600; }
+    .badge { font-size:.75rem; background:#eef; color:#334; padding:3px 8px; border-radius:999px; }
+    .actions a, .actions button { font-size:.95rem; padding:8px 12px; border-radius:8px; border:1px solid #ccc; background:#fafafa; cursor:pointer; text-decoration:none; color:#222; }
+    .actions a.primary, .actions button.primary { background:#1f7ae0; color:white; border:none; }
+    video, img, audio { width:100%; max-height:60vh; background:#000; border-radius:10px; }
+    .preview { margin:14px 0; }
+    .hidden { display:none; }
+    .err { color:#b00020; font-weight:600; }
+  </style>
 </head>
 <body>
+  <div class="wrap">
+    <h1>Retrieve</h1>
+    <div id="status" class="card">Loading…</div>
 
-<h1>Retrieve Your File</h1>
+    <div id="content" class="card hidden">
+      <div class="meta">
+        <div><strong>Code:</strong> <span id="code"></span></div>
+        <div><strong>Created:</strong> <span id="created"></span></div>
+        <div><strong>Expires:</strong> <span id="expires"></span></div>
+      </div>
 
-<input type="text" id="codeInput" placeholder="Enter retrieval code">
-<br>
-<button onclick="pasteCode()">Paste</button>
-<button onclick="downloadFile()">Download</button>
+      <div id="preview" class="preview hidden"></div>
 
-<p id="result"></p>
+      <div class="file-list" id="fileList"></div>
 
-<a href="upload.html">Go to Upload Page</a>
+      <div class="actions" style="margin-top:12px;">
+        <a id="downloadAll" class="primary" href="#" download>Download</a>
+        <a href="/fileshare/upload.html">Upload another</a>
+      </div>
+    </div>
+  </div>
 
-<script>
-const backendURL = 'https://filebackend-production.up.railway.app';
+  <script>
+    const BACKEND = 'https://filebackend-production.up.railway.app';
 
-function pasteCode() {
-    navigator.clipboard.readText().then(text => {
-        document.getElementById('codeInput').value = text;
-    }).catch(() => {
-        alert('Failed to read clipboard.');
-    });
-}
-
-function downloadFile() {
-    const code = document.getElementById('codeInput').value.trim();
-    if (!code) {
-        document.getElementById('result').innerText = 'Please enter a code.';
-        return;
+    function getCode() {
+      const url = new URL(location.href);
+      const pCode = url.searchParams.get('code');
+      if (pCode) return pCode.trim();
+      // fallback: try last path segment
+      const parts = location.pathname.split('/').filter(Boolean);
+      return parts[parts.length - 1] || '';
     }
-    document.getElementById('result').innerText = '';
-    window.location.href = backendURL + '/retrieve/' + code;
-}
-</script>
 
+    function fmtBytes(n) {
+      if (n === 0) return '0 B';
+      const k = 1024, units = ['B','KB','MB','GB','TB'];
+      const i = Math.floor(Math.log(n)/Math.log(k));
+      return (n/Math.pow(k,i)).toFixed(2)+' '+units[i];
+    }
+
+    async function load() {
+      const code = getCode();
+      const status = document.getElementById('status');
+      const content = document.getElementById('content');
+
+      if (!/^[A-Za-z0-9]{8,}$/.test(code)) {
+        status.innerHTML = '<span class="err">Invalid or missing code.</span>';
+        return;
+      }
+
+      try {
+        const res = await fetch(`${BACKEND}/meta/${encodeURIComponent(code)}`);
+        if (!res.ok) throw new Error('Not found');
+        const data = await res.json();
+
+        document.getElementById('code').textContent = data.code;
+        document.getElementById('created').textContent = data.created_at;
+        document.getElementById('expires').textContent = data.expires_at;
+
+        const list = document.getElementById('fileList');
+        list.innerHTML = '';
+
+        // Show first preview if video/image/audio and single file
+        const preview = document.getElementById('preview');
+        preview.innerHTML = '';
+        preview.classList.add('hidden');
+
+        if (data.files.length === 1) {
+          const f = data.files[0];
+          if (f.is_video) {
+            preview.innerHTML = `<video controls src="${f.stream_url}"></video>`;
+            preview.classList.remove('hidden');
+          } else if (f.is_image) {
+            preview.innerHTML = `<img src="${f.stream_url}" alt="${f.name}">`;
+            preview.classList.remove('hidden');
+          } else if (f.is_audio) {
+            preview.innerHTML = `<audio controls src="${f.stream_url}"></audio>`;
+            preview.classList.remove('hidden');
+          }
+        }
+
+        // File list (also enables per-file preview for multi)
+        data.files.forEach((f, idx) => {
+          const row = document.createElement('div');
+          row.className = 'file-item';
+
+          const left = document.createElement('div');
+          left.innerHTML = `<span class="file-name">${f.name}</span> <span class="badge">${f.mime.split('/')[0].toUpperCase()}</span> <span style="color:#666;">(${fmtBytes(f.size)})</span>`;
+
+          const right = document.createElement('div');
+          right.className = 'actions';
+          const previewBtn = document.createElement('button');
+          previewBtn.textContent = 'Preview';
+          previewBtn.onclick = () => {
+            if (f.is_video) {
+              preview.innerHTML = `<video controls src="${f.stream_url}"></video>`;
+              preview.classList.remove('hidden');
+            } else if (f.is_image) {
+              preview.innerHTML = `<img src="${f.stream_url}" alt="${f.name}">`;
+              preview.classList.remove('hidden');
+            } else if (f.is_audio) {
+              preview.innerHTML = `<audio controls src="${f.stream_url}"></audio>`;
+              preview.classList.remove('hidden');
+            } else {
+              preview.innerHTML = `<p>No inline preview for this file type.</p>`;
+              preview.classList.remove('hidden');
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          };
+
+          const dl = document.createElement('a');
+          dl.textContent = 'Download';
+          dl.href = f.stream_url;
+          dl.download = f.name;
+
+          right.appendChild(previewBtn);
+          right.appendChild(dl);
+
+          row.appendChild(left);
+          row.appendChild(right);
+          list.appendChild(row);
+        });
+
+        const dlAll = document.getElementById('downloadAll');
+        dlAll.href = data.download_all_url;
+        dlAll.download = '';
+
+        status.classList.add('hidden');
+        content.classList.remove('hidden');
+      } catch (e) {
+        status.innerHTML = '<span class="err">Not found or expired.</span>';
+      }
+    }
+
+    load();
+  </script>
 </body>
 </html>
+
