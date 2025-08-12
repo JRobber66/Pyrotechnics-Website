@@ -3,73 +3,41 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DataTestHub Tools</title>
+  <title>DataTestHub</title>
   <style>
-    body {
-      font-family: sans-serif;
-      background: #f4f4f4;
-      margin: 0;
-      padding: 2em;
-      text-align: center;
-    }
-    h1 {
-      margin-bottom: 1em;
-    }
-    ul {
-      list-style: none;
-      padding: 0;
-      max-width: 400px;
-      margin: auto;
-    }
-    li {
-      background: white;
-      margin: 0.5em 0;
-      padding: 1em;
-      border-radius: 8px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
-    a {
-      text-decoration: none;
-      color: #0077cc;
-      font-weight: bold;
-    }
-    .hidden {
-      display: none;
-    }
+    body { font-family: system-ui, Arial; margin:0; background:#f6f7f9; color:#222; }
+    .wrap { max-width: 720px; margin: 0 auto; padding: 36px 20px; }
+    h1 { margin:0 0 18px; }
+    .grid { display:grid; gap:12px; grid-template-columns: 1fr; }
+    @media(min-width:600px){ .grid { grid-template-columns: 1fr 1fr; } }
+    .tile { background:#fff; border:1px solid #e7e7e7; border-radius:12px; padding:18px; text-decoration:none; color:#1f3b6b; box-shadow:0 1px 6px rgba(0,0,0,0.05); }
+    .hidden { display:none; }
   </style>
 </head>
 <body>
-  <h1>Welcome to DataTestHub</h1>
-  <ul>
-    <li><a href="/ytlink/mainpage">YouTube Downloader</a></li>
-    <li><a href="/fileshare/upload.html">Secure File Upload</a></li>
-    <li class="hidden" id="chatLink"><a href="/chat/chat.html">AI Assistant Chat</a></li>
-  </ul>
+  <div class="wrap">
+    <h1>DataTestHub</h1>
+    <div class="grid">
+      <a class="tile" href="/ytlink/mainpage.html">YouTube Downloader</a>
+      <a class="tile" href="/fileshare/upload.html">Secure File Upload</a>
+      <a class="tile hidden" id="chatTile" href="/chat/chat.html">AI Assistant Chat</a>
+    </div>
+  </div>
 
   <script>
-    function setCookie(name, value, days) {
-      const expires = new Date(Date.now() + days * 864e5).toUTCString();
-      document.cookie = `${name}=${value}; expires=${expires}; path=/`;
-    }
+    function setCookie(n,v,days){ document.cookie = `${n}=${v}; max-age=${days*86400}; path=/`; }
+    function getCookie(n){ return document.cookie.split('; ').find(r=>r.startsWith(n+'='))?.split('=')[1]; }
 
-    function getCookie(name) {
-      return document.cookie.split('; ').find(row => row.startsWith(name + '='))?.split('=')[1];
-    }
+    const chatTile = document.getElementById('chatTile');
+    if (getCookie('chatVisible') === 'true') chatTile.classList.remove('hidden');
 
-    const chatLink = document.getElementById('chatLink');
-
-    // Show if cookie is present
-    if (getCookie("chatVisible") === "true") {
-      chatLink.classList.remove('hidden');
-    }
-
-    // Toggle visibility and set cookie if using shortcut
-    document.addEventListener('keydown', (e) => {
-      if (e.ctrlKey && e.altKey && e.code === 'KeyC') {
-        chatLink.classList.remove('hidden');
-        setCookie("chatVisible", "true", 365);
+    document.addEventListener('keydown', (e)=>{
+      if (e.ctrlKey && e.altKey && e.code==='KeyC'){
+        chatTile.classList.remove('hidden');
+        setCookie('chatVisible','true',365);
       }
     });
   </script>
 </body>
 </html>
+
