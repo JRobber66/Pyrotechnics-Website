@@ -1,35 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Redirecting...</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <title>Redirecting…</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script>
     window.onload = () => {
-      const path = window.location.pathname;
-      const parts = path.split('/');
-      const code = parts[parts.length - 1];
-
-      // Allow 8+ alphanumeric characters for codes (normal or admin secret)
-      const isLikelyCode = /^[A-Za-z0-9]{8,}$/.test(code);
-
-      if (isLikelyCode) {
-        window.location.href = `https://filebackend-production.up.railway.app/retrieve/${code}`;
-      } else {
-        window.location.href = 'https://datatesthub.com/';
+      const parts = location.pathname.split('/').filter(Boolean);
+      // match /fileshare/retrieve/<code>
+      if (parts.length === 3 && parts[0] === 'fileshare' && parts[1] === 'retrieve') {
+        const code = parts[2];
+        if (/^[A-Za-z0-9]{8,}$/.test(code)) {
+          location.replace(`/fileshare/retrieve.html?code=${encodeURIComponent(code)}`);
+          return;
+        }
       }
+      // otherwise go home
+      location.replace('/');
     };
   </script>
-  <style>
-    body {
-      font-family: sans-serif;
-      text-align: center;
-      padding: 5em 1em;
-    }
-  </style>
 </head>
 <body>
-  <h2>⏳ Redirecting...</h2>
+  <p>Redirecting…</p>
 </body>
 </html>
-
