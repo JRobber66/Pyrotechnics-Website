@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Ratify — Meeting Ban List</title>
+  <title>Ratify — Ban List (PIN login)</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
     body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial; max-width:900px; margin:28px auto; color:#111; }
@@ -10,7 +10,7 @@
     h1 { margin:0; font-size:20px; }
     .card { border:1px solid #ddd; padding:14px; border-radius:8px; margin-bottom:12px; background:#fff; box-shadow: 0 1px 3px rgba(0,0,0,0.03); }
     label { display:block; margin-top:8px; font-size:13px; color:#444; }
-    input[type=text], select { width:100%; padding:8px; margin-top:6px; border:1px solid #ccc; border-radius:6px; box-sizing:border-box;}
+    input[type=text], input[type=password], select { width:100%; padding:8px; margin-top:6px; border:1px solid #ccc; border-radius:6px; box-sizing:border-box;}
     button { margin-top:10px; padding:9px 12px; border-radius:6px; border:0; cursor:pointer; }
     button.primary { background:#0b63d7; color:white; }
     .row { display:flex; gap:10px; }
@@ -18,7 +18,6 @@
     .candidate:last-child { border-bottom:0; }
     .meta { font-size:13px; color:#666; }
     .ratified { color:green; font-weight:600; }
-    .badge { display:inline-block; padding:4px 8px; border-radius:999px; background:#f1f5f9; font-size:12px; margin-left:8px; }
     .check { font-size:18px; margin-left:8px; color:green; }
     .small { font-size:13px; color:#555; }
     .danger { color:#b00; }
@@ -26,18 +25,27 @@
     .candidate-actions { display:flex; align-items:center; gap:8px; }
     .votes { font-size:13px; color:#333; margin-left:6px; }
     .note { font-size:12px; color:#777; margin-top:8px; }
+    .muted { color:#777; font-size:13px; }
   </style>
 </head>
 <body>
   <header>
-    <h1>Ratify — Ban List (single page)</h1>
-    <div class="small">Insecure dropdown login — for private group use only</div>
+    <h1>Ratify — Ban List</h1>
+    <div class="small">Login with your 4-digit PIN (birthday). Stored hashed on server.</div>
   </header>
 
-  <div class="card">
-    <label for="member-select">Select member (insecure):</label>
+  <div class="card" id="authCard">
+    <label for="member-select">Member</label>
     <select id="member-select"></select>
-    <div class="note" id="healthNote">Checking backend…</div>
+
+    <label for="pin">4-digit PIN</label>
+    <input id="pin" type="password" maxlength="4" placeholder="e.g., 0623" />
+
+    <div class="row">
+      <button id="loginBtn" class="primary">Login</button>
+      <button id="logoutBtn" style="display:none">Logout</button>
+    </div>
+    <div id="authMessage" class="muted">Not logged in</div>
   </div>
 
   <div class="card" id="add-card">
@@ -62,52 +70,36 @@
   </div>
 
 <script>
-/**
- * Point frontend at your Railway backend.
- * If your service enforces HTTPS (it should), keep the https:// prefix.
- */
 const API_BASE_URL = 'https://ratification-production.up.railway.app';
 
-/* ---------- tiny fetch helper ---------- */
 async function api(path, opts = {}) {
-  const url = API_BASE_URL.replace(/\/+$/,'') + path; // avoid double slashes
+  const url = API_BASE_URL.replace(/\/+$/,'') + path;
   const res = await fetch(url, {
     headers: { 'Content-Type': 'application/json' },
     ...opts
   });
   if (!res.ok) {
-    const txt = await res.text().catch(()=>'');
-    throw new Error(`API ${res.status} ${res.statusText}${txt ? `: ${txt}` : ''}`);
+    const txt = await res.text().catch(()=>null);
+    throw new Error(`API ${res.status} ${res.statusText}${txt ? ' - '+txt : ''}`);
   }
-  // Some health endpoints might return text
-  const ct = res.headers.get('content-type') || '';
+  const ct = res.headers.get('content-type')||'';
   return ct.includes('application/json') ? res.json() : res.text();
 }
 
-let currentMember = null;
+let loggedInMember = null;
 const memberSelect = document.getElementById('member-select');
+const pinInput = document.getElementById('pin');
+const loginBtn = document.getElementById('loginBtn');
+const logoutBtn = document.getElementById('logoutBtn');
+const authMessage = document.getElementById('authMessage');
 const listArea = document.getElementById('listArea');
 const addBtn = document.getElementById('addBtn');
 const refreshBtn = document.getElementById('refreshBtn');
 const addMessage = document.getElementById('addMessage');
-const healthNote = document.getElementById('healthNote');
 
-/* ---------- bootstrap / health ---------- */
-async function checkHealth() {
-  try {
-    const r = await api('/', { method: 'GET' });
-    healthNote.textContent = 'Backend OK';
-  } catch (e) {
-    healthNote.innerHTML = '<span class="danger">Backend not reachable. Check CORS and URL.</span>';
-    console.error(e);
-  }
-}
-
-/* ---------- members ---------- */
 async function loadMembers() {
   try {
-    const data = await api('/members');
-    const members = (data && data.members) || [];
+    const { members } = await api('/members');
     memberSelect.innerHTML = '';
     members.forEach(m => {
       const opt = document.createElement('option');
@@ -115,23 +107,43 @@ async function loadMembers() {
       opt.textContent = m;
       memberSelect.appendChild(opt);
     });
-    if (members.length) {
-      currentMember = members[0];
-      memberSelect.value = currentMember;
-    } else {
-      currentMember = null;
-    }
   } catch (e) {
-    memberSelect.innerHTML = '<option value="">(error loading)</option>';
+    memberSelect.innerHTML = '<option>(error)</option>';
     console.error(e);
   }
 }
 
-memberSelect.addEventListener('change', () => {
-  currentMember = memberSelect.value;
+loginBtn.addEventListener('click', async () => {
+  const memberName = memberSelect.value;
+  const pin = pinInput.value.trim();
+  if (!memberName || pin.length !== 4) {
+    authMessage.textContent = 'Select member and enter 4-digit PIN.';
+    return;
+  }
+  try {
+    const r = await api('/auth', { method: 'POST', body: JSON.stringify({ memberName, pin }) });
+    if (r && r.ok) {
+      loggedInMember = memberName;
+      authMessage.textContent = `Logged in as ${memberName}`;
+      loginBtn.style.display = 'none';
+      logoutBtn.style.display = '';
+      pinInput.value = '';
+    } else {
+      authMessage.textContent = 'Login failed';
+    }
+  } catch (e) {
+    authMessage.textContent = 'Login failed';
+    console.error(e);
+  }
 });
 
-/* ---------- candidates ---------- */
+logoutBtn.addEventListener('click', () => {
+  loggedInMember = null;
+  authMessage.textContent = 'Logged out';
+  loginBtn.style.display = '';
+  logoutBtn.style.display = 'none';
+});
+
 async function loadCandidates() {
   listArea.innerHTML = 'Loading...';
   try {
@@ -187,28 +199,18 @@ async function loadCandidates() {
 function countYes(votes = {}) { return Object.values(votes).filter(v => v === true).length; }
 function countNo(votes = {}) { return Object.values(votes).filter(v => v === false).length; }
 
-/* ---------- voting ---------- */
 async function castVote(candidateId, vote) {
-  if (!currentMember) {
-    alert('Select a member first.');
+  if (!loggedInMember) {
+    alert('You must log in (member + PIN) before voting.');
     return;
   }
   try {
-    await api('/vote', {
-      method: 'POST',
-      body: JSON.stringify({ candidateId, memberName: currentMember, vote })
-    });
+    await api('/vote', { method: 'POST', body: JSON.stringify({ candidateId, memberName: loggedInMember, vote }) });
     await loadCandidates();
   } catch (e) {
     alert('Failed to cast vote: ' + e.message);
     console.error(e);
   }
-}
-
-/* ---------- adding candidate ---------- */
-function escapeHtml(s) {
-  if (!s) return '';
-  return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
 document.getElementById('addBtn').addEventListener('click', async () => {
@@ -236,11 +238,13 @@ document.getElementById('addBtn').addEventListener('click', async () => {
 
 document.getElementById('refreshBtn').addEventListener('click', loadCandidates);
 
-/* ---------- init ---------- */
+function escapeHtml(s) { if (!s) return ''; return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
 (async function init() {
-  await checkHealth();
   await loadMembers();
   await loadCandidates();
+  // initial UI state
+  authMessage.textContent = 'Not logged in';
 })();
 </script>
 </body>
