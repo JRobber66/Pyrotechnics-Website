@@ -44,7 +44,7 @@
         <label for="member-select">Member</label>
         <select id="member-select"></select>
         <label for="pin">4-digit PIN</label>
-        <input id="pin" type="password" maxlength="4" placeholder="e.g., 0623" />
+        <input id="pin" type="password" maxlength="4" placeholder="MMDD" />
         <div class="row">
           <button id="loginBtn" class="primary">Login</button>
           <button id="logoutBtn" style="display:none">Logout</button>
@@ -222,8 +222,6 @@ async function loadCandidates() {
       const delBtn    = btn('Delete', async () => { if (confirm('Delete this person?')) await adminAction(c.id, { action: 'delete' }); });
       const banBtn    = btn('Instant Ban', async () => adminAction(c.id, { action: 'setStatus', status:'banned' }));
       const allowBtn  = btn('Instant Allow', async () => adminAction(c.id, { action: 'setStatus', status:'allowed' }));
-      const majBtn    = btn('Resolve (majority)', async () => adminAction(c.id, { action: 'resolve', mode: 'majority' }));
-      const oppBtn    = btn('Resolve (opposite)', async () => adminAction(c.id, { action: 'resolve', mode: 'opposite' }));
 
       adminRow.appendChild(reopenBtn);
       adminRow.appendChild(delBtn);
