@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Ratify — Meeting Ban List</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial; max-width:900px; margin:28px auto; color:#111; }
+    header { display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;}
+    h1 { margin:0; font-size:20px; }
+    .card { border:1px solid #ddd; padding:14px; border-radius:8px; margin-bottom:12px; background:#fff; box-shadow: 0 1px 3px rgba(0,0,0,0.03); }
+    label { display:block; margin-top:8px; font-size:13px; color:#444; }
+    input[type=text], select { width:100%; padding:8px; margin-top:6px; border:1px solid #ccc; border-radius:6px; box-sizing:border-box;}
+    button { margin-top:10px; padding:9px 12px; border-radius:6px; border:0; cursor:pointer; }
+    button.primary { background:#0b63d7; color:white; }
+    .row { display:flex; gap:10px; }
+    .candidate { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px dashed #eee; }
+    .candidate:last-child { border-bottom:0; }
+    .meta { font-size:13px; color:#666; }
+    .ratified { color:green; font-weight:600; }
+    .badge { display:inline-block; padding:4px 8px; border-radius:999px; background:#f1f5f9; font-size:12px; margin-left:8px; }
+    .check { font-size:18px; margin-left:8px; color:green; }
+    .small { font-size:13px; color:#555; }
+    .danger { color:#b00; }
+    .center { text-align:center; }
+    .candidate-actions { display:flex; align-items:center; gap:8px; }
+    .votes { font-size:13px; color:#333; margin-left:6px; }
+    .note { font-size:12px; color:#777; margin-top:8px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Ratify — Ban List (single page)</h1>
+    <div class="small">Insecure dropdown login — for private group use only</div>
+  </header>
+
+  <div class="card">
+    <label for="member-select">Select member (insecure):</label>
+    <select id="member-select"></select>
+    <div class="note" id="healthNote">Checking backend…</div>
+  </div>
+
+  <div class="card" id="add-card">
+    <h2 style="margin:0 0 8px 0;">Add a name to consider banning</h2>
+    <label>First name</label>
+    <input id="firstName" type="text" placeholder="e.g., John" />
+    <label>Last initial</label>
+    <input id="lastInitial" type="text" maxlength="1" placeholder="e.g., D" />
+    <label>Notes (optional)</label>
+    <input id="notes" type="text" placeholder="optional: where/why" />
+    <div class="row">
+      <button id="addBtn" class="primary">Add</button>
+      <button id="refreshBtn">Refresh list</button>
+    </div>
+    <div id="addMessage" class="small"></div>
+  </div>
+
+  <div class="card">
+    <h2 style="margin:0 0 10px 0;">Current list</h2>
+    <div id="listArea">Loading...</div>
+    <div class="note">A green check and <strong>Ratified</strong> appear when every member has voted YES.</div>
+  </div>
+
+<script>
+/**
+ * Point frontend at your Railway backend.
+ * If your service enforces HTTPS (it should), keep the https:// prefix.
+ */
+const API_BASE_URL = 'https://ratification-production.up.railway.app';
+
+/* ---------- tiny fetch helper ---------- */
+async function api(path, opts = {}) {
+  const url = API_BASE_URL.replace(/\/+$/,'') + path; // avoid double slashes
+  const res = await fetch(url, {
+    headers: { 'Content-Type': 'application/json' },
+    ...opts
+  });
+  if (!res.ok) {
+    const txt = await res.text().catch(()=>'');
+    throw new Error(`API ${res.status} ${res.statusText}${txt ? `: ${txt}` : ''}`);
+  }
+  // Some health endpoints might return text
+  const ct = res.headers.get('content-type') || '';
+  return ct.includes('application/json') ? res.json() : res.text();
+}
+
+let currentMember = null;
+const memberSelect = document.getElementById('member-select');
+const listArea = document.getElementById('listArea');
+const addBtn = document.getElementById('addBtn');
+const refreshBtn = document.getElementById('refreshBtn');
+const addMessage = document.getElementById('addMessage');
+const healthNote = document.getElementById('healthNote');
+
+/* ---------- bootstrap / health ---------- */
+async function checkHealth() {
+  try {
+    const r = await api('/', { method: 'GET' });
+    healthNote.textContent = 'Backend OK';
+  } catch (e) {
+    healthNote.innerHTML = '<span class="danger">Backend not reachable. Check CORS and URL.</span>';
+    console.error(e);
+  }
+}
+
+/* ---------- members ---------- */
+async function loadMembers() {
+  try {
+    const data = await api('/members');
+    const members = (data && data.members) || [];
+    memberSelect.innerHTML = '';
+    members.forEach(m => {
+      const opt = document.createElement('option');
+      opt.value = m;
+      opt.textContent = m;
+      memberSelect.appendChild(opt);
+    });
+    if (members.length) {
+      currentMember = members[0];
+      memberSelect.value = currentMember;
+    } else {
+      currentMember = null;
+    }
+  } catch (e) {
+    memberSelect.innerHTML = '<option value="">(error loading)</option>';
+    console.error(e);
+  }
+}
+
+memberSelect.addEventListener('change', () => {
+  currentMember = memberSelect.value;
+});
+
+/* ---------- candidates ---------- */
+async function loadCandidates() {
+  listArea.innerHTML = 'Loading...';
+  try {
+    const { candidates = [] } = await api('/candidates');
+    if (!candidates.length) {
+      listArea.innerHTML = '<div class="center small">No names yet.</div>';
+      return;
+    }
+    listArea.innerHTML = '';
+    candidates.forEach(c => {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'candidate';
+      const left = document.createElement('div');
+      const nameEl = document.createElement('div');
+      nameEl.innerHTML = `<strong>${escapeHtml(c.firstName)} ${escapeHtml(c.lastInitial)}.</strong>`;
+      const meta = document.createElement('div');
+      meta.className = 'meta';
+      meta.textContent = c.notes ? `Notes: ${c.notes}` : 'No notes';
+      left.appendChild(nameEl);
+      left.appendChild(meta);
+
+      const right = document.createElement('div');
+      right.className = 'candidate-actions';
+      if (c.ratified) {
+        const rat = document.createElement('div');
+        rat.innerHTML = `<span class="check">✔</span><span class="ratified">Ratified</span>`;
+        right.appendChild(rat);
+      } else {
+        const yesBtn = document.createElement('button');
+        yesBtn.textContent = 'Vote YES';
+        yesBtn.onclick = () => castVote(c.id, true);
+        const noBtn = document.createElement('button');
+        noBtn.textContent = 'Vote NO';
+        noBtn.onclick = () => castVote(c.id, false);
+        right.appendChild(yesBtn);
+        right.appendChild(noBtn);
+      }
+      const votesSpan = document.createElement('div');
+      votesSpan.className = 'votes small';
+      votesSpan.textContent = `Votes: ${Object.keys(c.votes || {}).length} / ${c.totalMembers} (Yes:${countYes(c.votes)} No:${countNo(c.votes)})`;
+      right.appendChild(votesSpan);
+
+      wrapper.appendChild(left);
+      wrapper.appendChild(right);
+      listArea.appendChild(wrapper);
+    });
+  } catch (e) {
+    listArea.innerHTML = `<div class="danger">Error loading list</div>`;
+    console.error(e);
+  }
+}
+
+function countYes(votes = {}) { return Object.values(votes).filter(v => v === true).length; }
+function countNo(votes = {}) { return Object.values(votes).filter(v => v === false).length; }
+
+/* ---------- voting ---------- */
+async function castVote(candidateId, vote) {
+  if (!currentMember) {
+    alert('Select a member first.');
+    return;
+  }
+  try {
+    await api('/vote', {
+      method: 'POST',
+      body: JSON.stringify({ candidateId, memberName: currentMember, vote })
+    });
+    await loadCandidates();
+  } catch (e) {
+    alert('Failed to cast vote: ' + e.message);
+    console.error(e);
+  }
+}
+
+/* ---------- adding candidate ---------- */
+function escapeHtml(s) {
+  if (!s) return '';
+  return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+document.getElementById('addBtn').addEventListener('click', async () => {
+  const first = document.getElementById('firstName').value.trim();
+  const last = document.getElementById('lastInitial').value.trim();
+  const notes = document.getElementById('notes').value.trim();
+  addMessage.textContent = '';
+  if (!first || !last) {
+    addMessage.textContent = 'First name and last initial required.';
+    return;
+  }
+  try {
+    const payload = { firstName: first, lastInitial: last[0].toUpperCase(), notes };
+    const result = await api('/candidates', { method: 'POST', body: JSON.stringify(payload) });
+    addMessage.textContent = 'Added: ' + (result.message || `${first} ${last[0].toUpperCase()}.`);
+    document.getElementById('firstName').value = '';
+    document.getElementById('lastInitial').value = '';
+    document.getElementById('notes').value = '';
+    await loadCandidates();
+  } catch (e) {
+    addMessage.textContent = 'Error: ' + e.message;
+    console.error(e);
+  }
+});
+
+document.getElementById('refreshBtn').addEventListener('click', loadCandidates);
+
+/* ---------- init ---------- */
+(async function init() {
+  await checkHealth();
+  await loadMembers();
+  await loadCandidates();
+})();
+</script>
+</body>
+</html>
