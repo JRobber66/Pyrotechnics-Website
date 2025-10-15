@@ -2,86 +2,119 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Ratify — User pin is Birthday MMDD</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Ratify — Ban List</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial; color:#111; margin:0; }
-    header { display:flex; justify-content:space-between; align-items:center; padding:16px 20px; border-bottom:1px solid #eee; }
-    h1 { margin:0; font-size:20px; }
-    .container { display:grid; grid-template-columns: 1fr 280px; gap:16px; max-width:1100px; margin:20px auto; padding:0 16px; }
-    .card { border:1px solid #ddd; padding:14px; border-radius:8px; background:#fff; box-shadow: 0 1px 3px rgba(0,0,0,0.03); }
-    label { display:block; margin-top:8px; font-size:13px; color:#444; }
-    input[type=text], input[type=password], select { width:100%; padding:8px; margin-top:6px; border:1px solid #ccc; border-radius:6px; box-sizing:border-box;}
-    button { margin-top:10px; padding:8px 10px; border-radius:6px; border:0; cursor:pointer; }
-    button.primary { background:#0b63d7; color:white; }
-    button.linky { background:#f3f4f6; }
-    .row { display:flex; gap:10px; flex-wrap:wrap; }
-    .candidate { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px dashed #eee; }
-    .candidate:last-child { border-bottom:0; }
-    .meta { font-size:13px; color:#666; }
-    .status { font-size:12px; padding:4px 8px; border-radius:999px; background:#f1f5f9; margin-left:8px; }
-    .status.banned { background:#e6ffed; color:#0a7a28; }
-    .status.allowed { background:#eef2ff; color:#3340a0; }
-    .check { font-size:18px; margin-left:8px; color:green; }
-    .small { font-size:13px; color:#555; }
-    .danger { color:#b00; }
-    .center { text-align:center; }
-    .votes { font-size:12px; color:#333; margin-left:6px; }
-    aside h3 { margin:0 0 8px 0; font-size:16px; }
-    .list-sm { font-size:14px; line-height:1.5; }
-    .pill { display:inline-block; padding:3px 6px; border-radius:999px; background:#f8fafc; border:1px solid #e5e7eb; margin:2px 4px 2px 0; }
+    :root{
+      --pad:14px; --gap:12px; --radius:12px; --maxw:1100px;
+      --tap:48px; /* min tap target height */
+    }
+    *{box-sizing:border-box}
+    body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial;margin:0;color:#111;background:#fafafa}
+    header{position:sticky;top:0;background:#fff;border-bottom:1px solid #eee;z-index:10}
+    header .bar{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:12px var(--pad)}
+    h1{margin:0;font-size:18px}
+    .container{display:grid;grid-template-columns:1fr 320px;gap:var(--gap);max-width:var(--maxw);margin:16px auto;padding:0 var(--pad)}
+    .card{background:#fff;border:1px solid #e5e7eb;border-radius:var(--radius);padding:var(--pad);box-shadow:0 1px 2px rgba(0,0,0,.03)}
+    label{display:block;margin-top:8px;font-size:13px;color:#444}
+    input[type=text],input[type=password],select{
+      width:100%;margin-top:6px;border:1px solid #cbd5e1;border-radius:10px;padding:12px 12px;font-size:16px;min-height:var(--tap);
+      background:#fff;
+    }
+    button{border:0;border-radius:12px;padding:12px 14px;font-size:16px;cursor:pointer;min-height:var(--tap)}
+    button.primary{background:#0b63d7;color:#fff}
+    button.ghost{background:#f3f4f6}
+    .row{display:flex;gap:8px;flex-wrap:wrap}
+    .stack{display:flex;flex-direction:column;gap:8px}
+    .candidate{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:12px 0;border-bottom:1px dashed #eee}
+    .candidate:last-child{border-bottom:0}
+    .meta{font-size:13px;color:#666;margin-top:4px}
+    .status{font-size:12px;padding:4px 8px;border-radius:999px;background:#f1f5f9;margin-left:8px;text-transform:capitalize}
+    .status.banned{background:#e6ffed;color:#0a7a28}
+    .status.allowed{background:#eef2ff;color:#3340a0}
+    .votes{font-size:12px;color:#333;margin-left:6px;white-space:nowrap}
+    .pill{display:inline-block;padding:6px 10px;border-radius:999px;background:#f8fafc;border:1px solid #e5e7eb;margin:4px 6px 0 0;font-size:14px}
+    .small{font-size:13px;color:#555}
+    .right{display:flex;align-items:center;gap:8px}
+    .admin-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+    /* Mobile-first: single column; sidebar below main */
+    @media (max-width: 800px){
+      .container{grid-template-columns:1fr}
+      aside{order:2}
+      main{order:1}
+      header .bar{flex-wrap:wrap}
+      h1{font-size:17px}
+      button{width:100%}
+      .right{flex-direction:column;align-items:flex-start}
+    }
   </style>
 </head>
 <body>
   <header>
-    <h1>Ratify — Ban List</h1>
-    <div class="small" id="authState">Not logged in</div>
+    <div class="bar">
+      <h1>Ratify — Ban List</h1>
+      <div class="small" id="authState">Not logged in</div>
+    </div>
   </header>
 
   <div class="container">
     <main>
       <div class="card" id="authCard">
-        <label for="member-select">Member</label>
-        <select id="member-select"></select>
-        <label for="pin">4-digit PIN</label>
-        <input id="pin" type="password" maxlength="4" placeholder="MMDD" />
-        <div class="row">
-          <button id="loginBtn" class="primary">Login</button>
-          <button id="logoutBtn" style="display:none">Logout</button>
+        <div class="stack">
+          <div>
+            <label for="member-select">Member</label>
+            <select id="member-select"></select>
+          </div>
+          <div>
+            <label for="pin">4-digit PIN (MMDD)</label>
+            <input id="pin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="MMDD" />
+          </div>
+          <div class="row">
+            <button id="loginBtn" class="primary">Login</button>
+            <button id="logoutBtn" class="ghost" style="display:none">Logout</button>
+          </div>
+          <div id="authMessage" class="small">Use your 4-digit birthday format (MMDD).</div>
         </div>
-        <div id="authMessage" class="small">Use your 4-digit birthday PIN.</div>
       </div>
 
       <div class="card" id="add-card">
-        <h2 style="margin:0 0 8px 0;">Add a name to consider banning</h2>
-        <label>First name</label>
-        <input id="firstName" type="text" placeholder="e.g., John" />
-        <label>Last initial</label>
-        <input id="lastInitial" type="text" maxlength="1" placeholder="e.g., D" />
-        <label>Notes (optional)</label>
-        <input id="notes" type="text" placeholder="optional: where/why" />
-        <div class="row">
-          <button id="addBtn" class="primary">Add</button>
-          <button id="refreshBtn" class="linky">Refresh list</button>
+        <h2 style="margin:0 0 8px 0;font-size:18px;">Add a name to consider banning</h2>
+        <div class="stack">
+          <div>
+            <label>First name</label>
+            <input id="firstName" type="text" placeholder="First name" />
+          </div>
+          <div>
+            <label>Last initial</label>
+            <input id="lastInitial" type="text" maxlength="1" placeholder="Initial" />
+          </div>
+          <div>
+            <label>Notes (optional)</label>
+            <input id="notes" type="text" placeholder="Context/why (optional)" />
+          </div>
+          <div class="row">
+            <button id="addBtn" class="primary">Add</button>
+            <button id="refreshBtn" class="ghost">Refresh list</button>
+          </div>
+          <div id="addMessage" class="small"></div>
         </div>
-        <div id="addMessage" class="small"></div>
       </div>
 
       <div class="card">
-        <h2 style="margin:0 0 10px 0;">Current list</h2>
+        <h2 style="margin:0 0 10px 0;font-size:18px;">Current list</h2>
         <div id="listArea">Loading...</div>
-        <div class="small">Pending first.</div>
+        <div class="small">Pending first. Unanimous YES ⇒ <strong>Banned</strong> (goes to bottom & sidebar). Unanimous NO ⇒ <strong>Allowed</strong> 🕊️.</div>
       </div>
     </main>
 
     <aside>
       <div class="card">
-        <h3>Confirmed ban list</h3>
-        <div id="bannedList" class="list-sm">—</div>
+        <h2 style="margin:0 0 8px 0;font-size:16px;">Confirmed ban list</h2>
+        <div id="bannedList">—</div>
       </div>
       <div class="card" style="margin-top:12px;">
-        <h3>Allowed list 🕊️</h3>
-        <div id="allowedList" class="list-sm">—</div>
+        <h2 style="margin:0 0 8px 0;font-size:16px;">Allowed list 🕊️</h2>
+        <div id="allowedList">—</div>
       </div>
     </aside>
   </div>
@@ -100,194 +133,153 @@ async function api(path, opts = {}) {
 let loggedInMember = null;
 
 const memberSelect = document.getElementById('member-select');
-const pinInput = document.getElementById('pin');
-const loginBtn = document.getElementById('loginBtn');
-const logoutBtn = document.getElementById('logoutBtn');
-const authMessage = document.getElementById('authMessage');
-const authState = document.getElementById('authState');
+const pinInput     = document.getElementById('pin');
+const loginBtn     = document.getElementById('loginBtn');
+const logoutBtn    = document.getElementById('logoutBtn');
+const authMessage  = document.getElementById('authMessage');
+const authState    = document.getElementById('authState');
 
-const listArea = document.getElementById('listArea');
-const bannedList = document.getElementById('bannedList');
-const allowedList = document.getElementById('allowedList');
+const listArea     = document.getElementById('listArea');
+const bannedList   = document.getElementById('bannedList');
+const allowedList  = document.getElementById('allowedList');
 
-const addBtn = document.getElementById('addBtn');
-const refreshBtn = document.getElementById('refreshBtn');
-const addMessage = document.getElementById('addMessage');
+const addBtn       = document.getElementById('addBtn');
+const refreshBtn   = document.getElementById('refreshBtn');
+const addMessage   = document.getElementById('addMessage');
 
-function escapeHtml(s) { return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function escapeHtml(s){return (s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function isAdmin(){return loggedInMember==='Daniel'}
 
-async function loadMembers() {
-  const { members } = await api('/members');
-  memberSelect.innerHTML = '';
-  members.forEach(m => {
-    const opt = document.createElement('option'); opt.value = m; opt.textContent = m; memberSelect.appendChild(opt);
-  });
+async function loadMembers(){
+  const {members}=await api('/members');
+  memberSelect.innerHTML='';
+  members.forEach(m=>{const o=document.createElement('option');o.value=m;o.textContent=m;memberSelect.appendChild(o);});
 }
 
-loginBtn.addEventListener('click', async () => {
+loginBtn.addEventListener('click', async ()=>{
   const memberName = memberSelect.value;
   const pin = pinInput.value.trim();
-  if (!memberName || pin.length !== 4) { authMessage.textContent = 'Select member and enter 4 digits.'; return; }
-  try {
-    const r = await api('/auth', { method: 'POST', body: JSON.stringify({ memberName, pin }) });
-    if (r.ok) {
+  if(!memberName || pin.length!==4){authMessage.textContent='Select member and enter MMDD.';return;}
+  try{
+    const r = await api('/auth',{method:'POST',body:JSON.stringify({memberName,pin})});
+    if(r.ok){
       loggedInMember = memberName;
       authMessage.textContent = `Logged in as ${memberName}`;
-      authState.textContent = `Logged in: ${memberName}${memberName === 'Daniel' ? ' (admin)' : ''}`;
-      loginBtn.style.display = 'none'; logoutBtn.style.display = '';
-      pinInput.value = '';
+      authState.textContent = `Logged in: ${memberName}${isAdmin()?' (admin)':''}`;
+      loginBtn.style.display='none'; logoutBtn.style.display='';
+      pinInput.value='';
       await loadCandidates();
-    } else {
-      authMessage.textContent = 'Login failed';
-    }
-  } catch {
-    authMessage.textContent = 'Login failed';
-  }
+    }else{authMessage.textContent='Login failed';}
+  }catch{authMessage.textContent='Login failed';}
 });
 
-logoutBtn.addEventListener('click', async () => {
-  loggedInMember = null;
-  authMessage.textContent = 'Logged out';
-  authState.textContent = 'Not logged in';
-  loginBtn.style.display = ''; logoutBtn.style.display = 'none';
+logoutBtn.addEventListener('click', async ()=>{
+  loggedInMember=null;
+  authMessage.textContent='Logged out';
+  authState.textContent='Not logged in';
+  loginBtn.style.display=''; logoutBtn.style.display='none';
   await loadCandidates();
 });
 
-function renderSidebar(candidates) {
-  const banned = candidates.filter(c => c.status === 'banned');
-  const allowed = candidates.filter(c => c.status === 'allowed');
-
-  bannedList.innerHTML = banned.length
-    ? banned.map(c => `<span class="pill">${escapeHtml(c.firstName)} ${escapeHtml(c.lastInitial)}.</span>`).join(' ')
-    : '—';
-
-  allowedList.innerHTML = allowed.length
-    ? allowed.map(c => `<span class="pill">${escapeHtml(c.firstName)} ${escapeHtml(c.lastInitial)}.</span>`).join(' ')
-    : '—';
+function renderSidebar(candidates){
+  const banned = candidates.filter(c=>c.status==='banned');
+  const allowed= candidates.filter(c=>c.status==='allowed');
+  bannedList.innerHTML = banned.length ? banned.map(c=>`<span class="pill">${escapeHtml(c.firstName)} ${escapeHtml(c.lastInitial)}.</span>`).join(' ') : '—';
+  allowedList.innerHTML= allowed.length? allowed.map(c=>`<span class="pill">${escapeHtml(c.firstName)} ${escapeHtml(c.lastInitial)}.</span>`).join(' ') : '—';
 }
 
-function sortForMain(cands) {
-  // pending first, then allowed, then banned
-  const rank = { pending: 0, allowed: 1, banned: 2 };
-  return [...cands].sort((a,b) => {
-    const r = (rank[a.status] ?? 99) - (rank[b.status] ?? 99);
-    if (r !== 0) return r;
-    return a.createdAt.localeCompare(b.createdAt);
+function sortForMain(cands){
+  // pending → allowed → banned (banned at bottom)
+  const rank = {pending:0, allowed:1, banned:2};
+  return [...cands].sort((a,b)=>{
+    const r=(rank[a.status]??99)-(rank[b.status]??99);
+    if(r!==0) return r;
+    return (a.createdAt||'').localeCompare(b.createdAt||'');
   });
 }
 
-function isAdmin() { return loggedInMember === 'Daniel'; }
-
-async function loadCandidates() {
-  const { candidates = [] } = await api('/candidates');
+async function loadCandidates(){
+  const {candidates=[]}=await api('/candidates');
   renderSidebar(candidates);
-
   const sorted = sortForMain(candidates);
-  if (!sorted.length) { listArea.innerHTML = '<div class="center small">No names yet.</div>'; return; }
+  if(!sorted.length){listArea.innerHTML='<div class="small">No names yet.</div>';return;}
+  listArea.innerHTML='';
+  sorted.forEach(c=>{
+    const wrap=document.createElement('div'); wrap.className='candidate';
 
-  listArea.innerHTML = '';
-  sorted.forEach(c => {
-    const wrap = document.createElement('div'); wrap.className = 'candidate';
-
-    const left = document.createElement('div');
-    const title = document.createElement('div');
-    const statusBadge = `<span class="status ${c.status}">${c.status}</span>`;
-    title.innerHTML = `<strong>${escapeHtml(c.firstName)} ${escapeHtml(c.lastInitial)}.</strong> ${statusBadge}`;
-    const meta = document.createElement('div'); meta.className = 'meta';
-    meta.textContent = c.notes ? `Notes: ${c.notes}` : 'No notes';
+    const left=document.createElement('div');
+    const title=document.createElement('div');
+    title.innerHTML = `<strong>${escapeHtml(c.firstName)} ${escapeHtml(c.lastInitial)}.</strong> <span class="status ${c.status}">${c.status}</span>`;
+    const meta=document.createElement('div'); meta.className='meta'; meta.textContent=c.notes?`Notes: ${c.notes}`:'No notes';
     left.appendChild(title); left.appendChild(meta);
 
-    const right = document.createElement('div'); right.style.display = 'flex'; right.style.alignItems = 'center'; right.style.gap = '8px';
+    const right=document.createElement('div'); right.className='right';
 
-    // Voting (only when pending)
-    if (c.status === 'pending') {
-      const yesBtn = btn('Vote YES', async () => castVote(c.id, true));
-      const noBtn  = btn('Vote NO', async () => castVote(c.id, false));
-      right.appendChild(yesBtn); right.appendChild(noBtn);
+    // voting when pending
+    if(c.status==='pending'){
+      right.appendChild(makeBtn('Vote YES', ()=>castVote(c.id,true)));
+      right.appendChild(makeBtn('Vote NO',  ()=>castVote(c.id,false)));
     }
 
-    // Votes summary
-    const yes = countVals(c.votes, true);
-    const no  = countVals(c.votes, false);
-    const voted = Object.keys(c.votes || {}).length;
-    const votesSpan = document.createElement('div'); votesSpan.className = 'votes';
-    votesSpan.textContent = `Votes: ${voted}/${c.totalMembers} (Yes:${yes} No:${no})`;
-    right.appendChild(votesSpan);
+    // votes summary
+    const votes=document.createElement('div'); votes.className='votes';
+    const v=c.votes||{}; const yes=Object.values(v).filter(x=>x===true).length; const no=Object.values(v).filter(x=>x===false).length;
+    votes.textContent=`Votes: ${Object.keys(v).length}/${c.totalMembers} (Yes:${yes} No:${no})`;
+    right.appendChild(votes);
 
-    // Admin controls (Daniel only)
-    if (isAdmin()) {
-      const adminRow = document.createElement('div'); adminRow.className = 'row'; adminRow.style.marginTop = '6px';
-
-      const reopenBtn = btn('Reopen', async () => adminAction(c.id, { action: 'reopen' }));
-      const delBtn    = btn('Delete', async () => { if (confirm('Delete this person?')) await adminAction(c.id, { action: 'delete' }); });
-      const banBtn    = btn('Instant Ban', async () => adminAction(c.id, { action: 'setStatus', status:'banned' }));
-      const allowBtn  = btn('Instant Allow', async () => adminAction(c.id, { action: 'setStatus', status:'allowed' }));
-
-      adminRow.appendChild(reopenBtn);
-      adminRow.appendChild(delBtn);
-      adminRow.appendChild(banBtn);
-      adminRow.appendChild(allowBtn);
-      if (c.status === 'pending') {
-        adminRow.appendChild(majBtn);
-        adminRow.appendChild(oppBtn);
-      }
-      // Place admin row below votes
-      const adminWrap = document.createElement('div'); adminWrap.style.display = 'flex'; adminWrap.style.flexDirection = 'column';
-      adminWrap.appendChild(right); // keep votes inline
-      adminWrap.appendChild(adminRow);
-      // Replace right with adminWrap
-      wrap.appendChild(left);
-      wrap.appendChild(adminWrap);
+    // Admin (Daniel) — NO resolve buttons anymore
+    if(isAdmin()){
+      const adminRow=document.createElement('div'); adminRow.className='admin-row';
+      adminRow.appendChild(makeBtn('Reopen', ()=>adminAction(c.id,{action:'reopen'})));
+      adminRow.appendChild(makeBtn('Delete', async ()=>{
+        if(confirm('Delete this person?')) await adminAction(c.id,{action:'delete'});
+      }));
+      adminRow.appendChild(makeBtn('Instant Ban', ()=>adminAction(c.id,{action:'setStatus',status:'banned'})));
+      adminRow.appendChild(makeBtn('Instant Allow', ()=>adminAction(c.id,{action:'setStatus',status:'allowed'})));
+      // attach admin row under right controls
+      const rightWrap=document.createElement('div'); rightWrap.className='stack';
+      rightWrap.appendChild(right); rightWrap.appendChild(adminRow);
+      wrap.appendChild(left); wrap.appendChild(rightWrap);
     } else {
-      wrap.appendChild(left);
-      wrap.appendChild(right);
+      wrap.appendChild(left); wrap.appendChild(right);
     }
 
     listArea.appendChild(wrap);
   });
 }
 
-function btn(text, onClick) {
-  const b = document.createElement('button'); b.className = 'linky'; b.textContent = text; b.onclick = onClick; return b;
-}
-function countVals(votes = {}, val) { return Object.values(votes).filter(x => x === val).length; }
+function makeBtn(text, onClick){const b=document.createElement('button'); b.className='ghost'; b.textContent=text; b.onclick=onClick; return b;}
 
-async function castVote(candidateId, vote) {
-  if (!loggedInMember) { alert('Login first.'); return; }
-  await api('/vote', { method: 'POST', body: JSON.stringify({ candidateId, memberName: loggedInMember, vote }) });
+async function castVote(candidateId, vote){
+  if(!loggedInMember){alert('Login first.');return;}
+  await api('/vote',{method:'POST',body:JSON.stringify({candidateId,memberName:loggedInMember,vote})});
   await loadCandidates();
 }
 
-async function adminAction(id, body) {
-  await api(`/candidates/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify(body) });
+async function adminAction(id, body){
+  await api(`/candidates/${encodeURIComponent(id)}`,{method:'PATCH',body:JSON.stringify(body)});
   await loadCandidates();
 }
 
-addBtn.addEventListener('click', async () => {
-  const first = document.getElementById('firstName').value.trim();
-  const last = document.getElementById('lastInitial').value.trim();
-  const notes = document.getElementById('notes').value.trim();
-  addMessage.textContent = '';
-  if (!first || !last) { addMessage.textContent = 'First name and last initial required.'; return; }
-  try {
-    await api('/candidates', { method: 'POST', body: JSON.stringify({ firstName:first, lastInitial:last[0].toUpperCase(), notes }) });
-    addMessage.textContent = 'Added.';
-    document.getElementById('firstName').value = '';
-    document.getElementById('lastInitial').value = '';
-    document.getElementById('notes').value = '';
+addBtn.addEventListener('click', async ()=>{
+  const first=document.getElementById('firstName').value.trim();
+  const last =document.getElementById('lastInitial').value.trim();
+  const notes=document.getElementById('notes').value.trim();
+  addMessage.textContent='';
+  if(!first||!last){addMessage.textContent='First name and last initial required.';return;}
+  try{
+    await api('/candidates',{method:'POST',body:JSON.stringify({firstName:first,lastInitial:last[0].toUpperCase(),notes})});
+    addMessage.textContent='Added.';
+    document.getElementById('firstName').value='';
+    document.getElementById('lastInitial').value='';
+    document.getElementById('notes').value='';
     await loadCandidates();
-  } catch (e) {
-    addMessage.textContent = 'Error: ' + e.message;
-  }
+  }catch(e){addMessage.textContent='Error: '+e.message;}
 });
-
 refreshBtn.addEventListener('click', loadCandidates);
 
-// Init
-(async function init() {
-  await loadMembers();
-  await loadCandidates();
-})();
+// init
+(async function(){ await loadMembers(); await loadCandidates(); })();
 </script>
 </body>
 </html>
