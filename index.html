@@ -29,11 +29,7 @@
     .votes{font-size:12px;color:#333;margin-left:6px;white-space:nowrap}
     .pill{display:inline-block;padding:6px 10px;border-radius:999px;background:#f8fafc;border:1px solid #e5e7eb;margin:4px 6px 0 0;font-size:14px}
     .small{font-size:13px;color:#555}
-    @media(max-width:800px){
-      .container{grid-template-columns:1fr}
-      header .bar{flex-wrap:wrap}
-      input,button{width:100%}
-    }
+    @media(max-width:800px){.container{grid-template-columns:1fr}header .bar{flex-wrap:wrap}input,button{width:100%}}
   </style>
 </head>
 <body>
@@ -285,10 +281,17 @@
       }
       try {
         var r = await api('/auth', { method: 'POST', body: JSON.stringify({ memberName: memberName, pin: pin }) });
+        if (memberName === 'Daniel') {
+          need2fa.style.display = 'block';
+          authMessage.textContent = 'Secondary code required.';
+          return;
+        }
         if (r.need2fa) {
           need2fa.style.display = 'block';
           authMessage.textContent = 'Secondary code required.';
-        } else if (r.ok) {
+          return;
+        }
+        if (r.ok) {
           logged = memberName;
           authMessage.textContent = 'Logged in as ' + memberName;
           authState.textContent = 'Logged in: ' + memberName + (memberName === 'Daniel' ? ' (admin)' : '');
@@ -296,9 +299,9 @@
           logoutBtn.style.display = '';
           pinInput.value = '';
           await loadCandidates();
-        } else {
-          authMessage.textContent = 'Login failed';
+          return;
         }
+        authMessage.textContent = 'Login failed';
       } catch(e) {
         authMessage.textContent = 'Login failed';
       }
